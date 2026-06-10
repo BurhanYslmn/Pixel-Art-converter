@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Art & Block Converter (v3.2)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e2f;
+            color: #fff;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: #2a2a40;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 600px;
+        }
+        h2 { text-align: center; margin-top: 0; color: #4CAF50; }
+        .form-group { margin-bottom: 20px; border-bottom: 1px solid #3f3f5a; padding-bottom: 15px; }
+        .form-group:last-of-type { border-bottom: none; }
+        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #b3b3cc; }
+        input[type="file"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #3f3f5a;
+            border-radius: 5px;
+            background-color: #1e1e2f;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #45a049; }
+        
+        .block-preview-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            background: #1e1e2f;
+            padding: 12px;
+            border-radius: 5px;
+            min-height: 50px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .block-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 44px;
+        }
+        .block-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            border: 2px solid #4CAF50;
+            object-fit: cover;
+            display: block;
+        }
+        .remove-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ff4d4d;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 15px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            user-select: none;
+            transition: background 0.2s, transform 0.1s;
+            z-index: 10;
+        }
+        .remove-btn:hover {
+            background-color: #ff1a1a;
+            transform: scale(1.1);
+        }
+
+        canvas {
+            display: block;
+            margin: 20px auto 0;
+            background-color: #000;
+            border: 2px solid #3f3f5a;
+            image-rendering: pixelated; 
+            max-width: 100%;
+        }
+
+        .report-section {
+            margin-top: 25px;
+            background-color: #1e1e2f;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3f3f5a;
+            display: none;
+        }
+        .report-title {
+            font-size: 16px;
+            color: #4CAF50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #3f3f5a;
+            padding-bottom: 5px;
+        }
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+        }
+        .report-item {
+            background-color: #2a2a40;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #3f3f5a;
+        }
+        .report-item img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid #4CAF50;
+        }
+        .report-item-name {
+            font-size: 11px;
+            color: #b3b3cc;
+            margin-top: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .report-item-count {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 3px;
+        }
+
+        /* YENİ EKLENEN KISIM: Footer ve Sosyal Medya Butonları */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            border-top: 1px solid #3f3f5a;
+            padding-top: 20px;
+        }
+        .footer p {
+            color: #b3b3cc;
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .social-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            transition: opacity 0.3s, transform 0.2s;
+            display: inline-block;
+        }
+        .social-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        .insta-btn {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+        .dc-btn {
+            background-color: #5865F2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Pixel Art & Block Converter</h2>
+    
+    <div class="form-group">
+        <label>1. Upload Main Image to Convert:</label>
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
+
+    <div class="form-group">
+        <label>2. Upload Block Images (You can select multiple):</label>
+        <input type="file" id="blockInput" accept="image/*" multiple>
+        <div class="block-preview-container" id="blockPreview">
+            <span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>3. Select Operation Mode:</label>
+        <select id="modeSelect">
+            <option value="auto">Option 1: Automatic Pixel Art</option>
+            <option value="blocks" selected>Option 2: Create with Uploaded Blocks</option>
+        </select>
+    </div>
+
+    <div class="form-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>Width (Block Count):</label>
+            <input type="number" id="pixelWidth" value="50" min="8" max="128">
+        </div>
+        <div style="flex: 1;">
+            <label>Height (Block Count):</label>
+            <input type="number" id="pixelHeight" value="50" min="8" max="128">
+        </div>
+    </div>
+
+    <button id="generateBtn">Generate Pixel Art</button>
+
+    <canvas id="resultCanvas" width="600" height="600"></canvas>
+
+    <div class="report-section" id="reportSection">
+        <h3 class="report-title">📦 Used Block List & Quantities</h3>
+        <div class="report-grid" id="reportContainer"></div>
+    </div>
+
+    <div class="footer">
+        <p>Made By: <strong>Burhan</strong></p>
+        <div class="social-links">
+            <a href="https://www.instagram.com/burhanpw/" target="_blank" class="social-btn insta-btn">Instagram</a>
+            <a href="https://discord.gg/tHA2dA6pYY" target="_blank" class="social-btn dc-btn">Discord</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const blockInput = document.getElementById('blockInput');
+    const blockPreview = document.getElementById('blockPreview');
+    const modeSelect = document.getElementById('modeSelect');
+    const pixelWidthInput = document.getElementById('pixelWidth');
+    const pixelHeightInput = document.getElementById('pixelHeight');
+    const generateBtn = document.getElementById('generateBtn');
+    const resultCanvas = document.getElementById('resultCanvas');
+    const reportSection = document.getElementById('reportSection');
+    const reportContainer = document.getElementById('reportContainer');
+    const ctx = resultCanvas.getContext('2d');
+
+    let uploadedImage = new Image();
+    let customBlocks = []; 
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) { uploadedImage.src = event.target.result; };
+        reader.readAsDataURL(file);
+    });
+
+    blockInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files.length === 0) return;
+
+        blockPreview.innerHTML = '';
+        customBlocks = [];
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = 1;
+                    tempCanvas.height = 1;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(img, 0, 0, 1, 1);
+                    const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
+                    
+                    const cleanName = file.name.split('.').slice(0, -1).join('.');
+
+                    const blockObj = {
+                        image: img,
+                        rgb: [pixelData[0], pixelData[1], pixelData[2]],
+                        name: cleanName,
+                        count: 0 
+                    };
+
+                    customBlocks.push(blockObj);
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'block-wrapper';
+
+                    const thumb = document.createElement('img');
+                    thumb.src = img.src;
+                    thumb.className = 'block-thumb';
+                    thumb.title = cleanName;
+
+                    const removeBtn = document.createElement('div');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.title = "Remove block";
+                    
+                    removeBtn.addEventListener('click', function() {
+                        const index = customBlocks.indexOf(blockObj);
+                        if (index > -1) {
+                            customBlocks.splice(index, 1);
+                        }
+                        wrapper.remove();
+
+                        if (customBlocks.length === 0) {
+                            blockPreview.innerHTML = '<span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>';
+                        }
+                    });
+
+                    wrapper.appendChild(thumb);
+                    wrapper.appendChild(removeBtn);
+                    blockPreview.appendChild(wrapper);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    function getClosestBlock(r, g, b) {
+        let minDistance = Infinity;
+        let closestBlock = null;
+
+        for (let block of customBlocks) {
+            let distance = Math.sqrt(
+                Math.pow(r - block.rgb[0], 2) +
+                Math.pow(g - block.rgb[1], 2) +
+                Math.pow(b - block.rgb[2], 2)
+            );
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestBlock = block;
+            }
+        }
+        return closestBlock;
+    }
+
+    generateBtn.addEventListener('click', function() {
+        if (!uploadedImage.src) {
+            alert("Please upload a main image first!");
+            return;
+        }
+
+        const targetW = parseInt(pixelWidthInput.value);
+        const targetH = parseInt(pixelHeightInput.value);
+        const mode = modeSelect.value;
+
+        if (mode === "auto") {
+            reportSection.style.display = 'none'; 
+            generateAutoPixelArt(targetW, targetH);
+        } else if (mode === "blocks") {
+            if (customBlocks.length === 0) {
+                alert("Error: To generate with blocks, you must first upload block images in 'Option 2'!");
+                return;
+            }
+            generateCustomBlockArt(targetW, targetH);
+        }
+    });
+
+    function generateAutoPixelArt(targetW, targetH) {
+        const offScreenCanvas = document.createElement('canvas');
+        offScreenCanvas.width = targetW;
+        offScreenCanvas.height = targetH;
+        const offCtx = offScreenCanvas.getContext('2d');
+        
+        offCtx.drawImage(uploadedImage, 0, 0, targetW, targetH);
+        
+        ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(offScreenCanvas, 0, 0, targetW, targetH, 0, 0, resultCanvas.width, resultCanvas.height);
+    }
+
+    function generateCustomBlockArt(targetW, targetH) {
+        const offScreenCanvas = document.createElement('canvas');
+        offScreenCanvas.width = targetW;
+        offScreenCanvas.height = targetH;
+        const offCtx = offScreenCanvas.getContext('2d');
+        offCtx.drawImage(uploadedImage, 0, 0, targetW, targetH);
+        
+        const imageData = offCtx.getImageData(0, 0, targetW, targetH);
+        const data = imageData.data;
+
+        ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        ctx.imageSmoothingEnabled = false;
+
+        const blockGridW = resultCanvas.width / targetW;
+        const blockGridH = resultCanvas.height / targetH;
+
+        const jitterAmount = 30; 
+
+        customBlocks.forEach(b => b.count = 0);
+
+        let pixelIndex = 0;
+        for (let y = 0; y < targetH; y++) {
+            for (let x = 0; x < targetW; x++) {
+                let r = data[pixelIndex];
+                let g = data[pixelIndex+1];
+                let b = data[pixelIndex+2];
+                let a = data[pixelIndex+3];
+
+                if (a > 10) {
+                    let jitterR = (Math.random() * 2 - 1) * jitterAmount;
+                    let jitterG = (Math.random() * 2 - 1) * jitterAmount;
+                    let jitterB = (Math.random() * 2 - 1) * jitterAmount;
+
+                    let finalR = Math.max(0, Math.min(255, r + jitterR));
+                    let finalG = Math.max(0, Math.min(255, g + jitterG));
+                    let finalB = Math.max(0, Math.min(255, b + jitterB));
+
+                    let closest = getClosestBlock(finalR, finalG, finalB);
+                    
+                    if (closest) {
+                        closest.count++;
+
+                        let currentX = Math.floor(x * blockGridW);
+                        let currentY = Math.floor(y * blockGridH);
+                        let nextX = Math.floor((x + 1) * blockGridW);
+                        let nextY = Math.floor((y + 1) * blockGridH);
+                        
+                        let drawW = nextX - currentX;
+                        let drawH = nextY - currentY;
+
+                        ctx.drawImage(closest.image, currentX, currentY, drawW, drawH);
+                    }
+                }
+                
+                pixelIndex += 4; 
+            }
+        }
+
+        drawInventoryReport();
+    }
+
+    function drawInventoryReport() {
+        reportContainer.innerHTML = ''; 
+
+        const usedBlocks = customBlocks
+            .filter(b => b.count > 0)
+            .sort((a, b) => b.count - a.count);
+
+        usedBlocks.forEach(block => {
+            const card = document.createElement('div');
+            card.className = 'report-item';
+
+            const img = document.createElement('img');
+            img.src = block.image.src;
+
+            const name = document.createElement('div');
+            name.className = 'report-item-name';
+            name.innerText = block.name;
+            name.title = block.name; 
+
+            const count = document.createElement('div');
+            count.className = 'report-item-count';
+            count.innerText = `${block.count}x`;
+
+            card.appendChild(img);
+            card.appendChild(name);
+            card.appendChild(count);
+            reportContainer.appendChild(card);
+        });
+
+        reportSection.style.display = 'block';
+    }
+</script>
+</body>
+</html>
