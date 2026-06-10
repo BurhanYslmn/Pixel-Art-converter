@@ -1,0 +1,4 @@
+while (awake) {
+    drinkTea();      // 🍵
+    writeCode();     // (Sleeping i guess..)
+}
