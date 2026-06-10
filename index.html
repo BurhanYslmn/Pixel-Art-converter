@@ -198,8 +198,8 @@
         
         #loadingStatus {
             text-align: center;
-            font-size: 12px;
-            color: #4CAF50;
+            font-size: 13px;
+            color: #b3b3cc;
             margin-top: 5px;
             font-weight: bold;
         }
@@ -216,8 +216,9 @@
     </div>
 
     <div class="form-group">
-        <label>2. Preloaded Game Blocks:</label>
-        <div id="loadingStatus">Loading system assets...</div>
+        <label>2. Upload Block Images (You can select multiple):</label>
+        <input type="file" id="blockInput" multiple accept="image/*">
+        <div id="loadingStatus">Please select your game blocks to initialize the mapper.</div>
         <div class="block-preview-container" id="blockPreview"></div>
     </div>
 
@@ -225,7 +226,7 @@
         <label>3. Select Operation Mode:</label>
         <select id="modeSelect">
             <option value="auto">Option 1: Automatic Pixel Art</option>
-            <option value="blocks" selected>Option 2: Create with Preloaded Blocks</option>
+            <option value="blocks" selected>Option 2: Create with Uploaded Blocks</option>
         </select>
     </div>
 
@@ -260,6 +261,7 @@
 
 <script>
     const imageInput = document.getElementById('imageInput');
+    const blockInput = document.getElementById('blockInput');
     const blockPreview = document.getElementById('blockPreview');
     const modeSelect = document.getElementById('modeSelect');
     const pixelWidthInput = document.getElementById('pixelWidth');
@@ -274,156 +276,82 @@
     let uploadedImage = new Image();
     let customBlocks = []; 
 
-    // GÖNDERDİĞİNİZ TÜM 249 ADET GÖRSELİN EKSİKSİZ TAM LİSTESİ
-    const defaultBlockNames = [
-        "Alien_Cave_Wall.webp", "Arabic_Bricks_Background.webp", "Armored_Background.webp", "Ashen_Soil.webp",
-        "Barn_Wall.webp", "Beige_Brick.webp", "Black_Block.webp", "Black_Brick.webp", "Black_Diagonal_Checker.webp",
-        "Black_Glass_Tile.webp", "Black_Iron_Background_1.webp", "Black_Iron_Background_2.webp", "Black_Jelly.webp",
-        "Black_Jewel_Block.webp", "Black_Metal_Sheet.webp", "Black_Tile.webp", "Blue_Big_Tile.webp", "Blue_Block.webp",
-        "Blue_Brick.webp", "Blue_Candy_Block.webp", "Blue_Diagonal_Checker.webp", "Blue_Glass_Tile.webp", "Blue_Jelly.webp",
-        "Blue_Jewel_Block.webp", "Blue_Neon_Background.webp", "Blue_Spheres_Background.webp", "Blue_Tile.webp",
-        "Bolted_Dark_Background.webp", "Broken_Ruin_Background.webp", "Broken_Temple_Brick_1.webp", "Brown_Big_Tile.webp",
-        "Brown_Block.webp", "Brown_Brick_Wallpaper.webp", "Brown_Vegetation_Block.webp", "Castle_Wall.webp",
-        "Castle_Wall_Tile.webp", "Castle_Wallpaper.webp", "Clear_Jelly.webp", "Concrete_Block_1x1.webp",
-        "Cyan_Candy_Block.webp", "Dark_Red_Block.webp", "Dark_Stone_Block_1.webp", "Dark_Urban_Background_1.webp",
-        "Dark_Urban_Background_2.webp", "Dark_Urban_Background_3.webp", "Decorative_Temple_Block_2.webp",
-        "Dirty_Herringbone.webp", "Dirty_Wall_1.webp", "Dirty_Wall_2.webp", "Dollar_Background.webp",
-        "Dungeon_Wall.webp", "Flower_Wallpaper.webp", "Frosted_Soil_Block.webp", "Glass_Block.webp",
-        "Glass_Tile.webp", "Glue_Block.webp", "Green_Big_Tile.webp", "Green_Block.webp",
-        "Green_Brick.webp", "Green_Glass_Tile.webp", "Green_Jelly.webp", "Green_Neon_Background.webp",
-        "Green_Screen.webp", "Green_Tile.webp", "Grey_Big_Tile.webp", "Grey_Block.webp",
-        "Grey_Brick.webp", "Grey_Brick_Wallpaper.webp", "Grey_Dot_Illusion.webp", "Grey_Herringbone.webp",
-        "Grey_Iron_Background_1.webp", "Grey_Iron_Background_2.webp", "Grey_Spheres_Background.webp", "Ice.webp",
-        "Iron_Block.webp", "Junk_Background.webp", "Junk_Block.webp", "Large_Diagonal_Plating.webp",
-        "Large_Diagonal_Tiles.webp", "Lava_Background.webp", "Light_Blue_Block.webp", "Light_Blue_Jelly.webp",
-        "Light_Blue_Wallpaper.webp", "Light_Wooden_Background.webp", "Magic_Stuff.webp", "Marble.webp",
-        "Martian_Background.webp", "Melted_Chocolate.webp", "Metal_Background_1.webp", "Metal_Background_2.webp",
-        "Metal_Background_3.webp", "Metal_Plate.webp", "Money_Background.webp", "Moon_Background.webp",
-        "Moon_Soil.webp", "Orange_Block.webp", "Orange_Jelly.webp", "Orange_Jewel_Block.webp",
-        "Orange_Neon_Background.webp", "Orange_Tile.webp", "Patterned_Metal_Background.webp", "Pink_Block.webp",
-        "Pink_Brick.webp", "Pink_Jelly.webp", "Pink_Tile.webp", "Pixel_Background_-_Albescent_White.webp",
-        "Pixel_Background_-_Amethyst_Smoke.webp", "Pixel_Background_-_Anakiwa.webp", "Pixel_Background_-_Apple.webp",
-        "Pixel_Background_-_Astronaut.webp", "Pixel_Background_-_Baltic_Sea.webp", "Pixel_Background_-_Bittersweet.webp",
-        "Pixel_Background_-_Black.webp", "Pixel_Background_-_Black_Rock.webp", "Pixel_Background_-_Bracken.webp",
-        "Pixel_Background_-_Brilliant_Rose.webp", "Pixel_Background_-_Cab_Sav.webp", "Pixel_Background_-_Cafe_Royale.webp",
-        "Pixel_Background_-_Chestnut_Rose.webp", "Pixel_Background_-_Classic_Rose.webp", "Pixel_Background_-_Copper_Rust.webp",
-        "Pixel_Background_-_Cyan.webp", "Pixel_Background_-_Dark_Tan.webp", "Pixel_Background_-_Deluge.webp",
-        "Pixel_Background_-_Dodger_Blue.webp", "Pixel_Background_-_Eden.webp", "Pixel_Background_-_Endeavour.webp",
-        "Pixel_Background_-_Forest_Green.webp", "Pixel_Background_-_Japanese_Laurel.webp", "Pixel_Background_-_Korma.webp",
-        "Pixel_Background_-_Moon_Raker.webp", "Pixel_Background_-_Rajah.webp", "Pixel_Background_-_Red.webp",
-        "Pixel_Background_-_Resolution_Blue.webp", "Pixel_Background_-_Saffron.webp", "Pixel_Background_-_Salem.webp",
-        "Pixel_Background_-_Salt_Box.webp", "Pixel_Background_-_Science_Blue.webp", "Pixel_Background_-_Seance.webp",
-        "Pixel_Background_-_Ship_Gray.webp", "Pixel_Background_-_Starship.webp", "Pixel_Background_-_Tamarillo.webp",
-        "Pixel_Background_-_Tango.webp", "Pixel_Background_-_Tawny_Port.webp", "Pixel_Background_-_Toledo.webp",
-        "Pixel_Background_-_Tuscany.webp", "Pixel_Background_-_Valhalla.webp", "Pixel_Background_-_White.webp",
-        "Pixel_Block_-_Albescent_White.webp", "Pixel_Block_-_Amethyst_Smoke.webp", "Pixel_Block_-_Anakiwa.webp",
-        "Pixel_Block_-_Apple.webp", "Pixel_Block_-_Astronaut.webp", "Pixel_Block_-_Baltic_Sea.webp",
-        "Pixel_Block_-_Bittersweet.webp", "Pixel_Block_-_Black.webp", "Pixel_Block_-_Black_Rock.webp",
-        "Pixel_Block_-_Bracken.webp", "Pixel_Block_-_Brilliant_Rose.webp", "Pixel_Block_-_Cab_Sav.webp",
-        "Pixel_Block_-_Cafe_Royale.webp", "Pixel_Block_-_Chestnut_Rose.webp", "Pixel_Block_-_Classic_Rose.webp",
-        "Pixel_Block_-_Copper_Rust.webp", "Pixel_Block_-_Cyan.webp", "Pixel_Block_-_Dark_Tan.webp",
-        "Pixel_Block_-_Deluge.webp", "Pixel_Block_-_Dodger_Blue.webp", "Pixel_Block_-_Eden.webp",
-        "Pixel_Block_-_Endeavour.webp", "Pixel_Block_-_Forest_Green.webp", "Pixel_Block_-_Japanese_Laurel.webp",
-        "Pixel_Block_-_Korma.webp", "Pixel_Block_-_Moon_Raker.webp", "Pixel_Block_-_Rajah.webp",
-        "Pixel_Block_-_Red.webp", "Pixel_Block_-_Resolution_Blue.webp", "Pixel_Block_-_Saffron.webp",
-        "Pixel_Block_-_Salem.webp", "Pixel_Block_-_Salt_Box.webp", "Pixel_Block_-_Science_Blue.webp",
-        "Pixel_Block_-_Seance.webp", "Pixel_Block_-_Ship_Gray.webp", "Pixel_Block_-_Starship.webp",
-        "Pixel_Block_-_Tamarillo.webp", "Pixel_Block_-_Tango.webp", "Pixel_Block_-_Tawny_Port.webp",
-        "Pixel_Block_-_Toledo.webp", "Pixel_Block_-_Tuscany.webp", "Pixel_Block_-_Valhalla.webp",
-        "Pixel_Block_-_White.webp", "Purple_Block.webp", "Purple_Brick_Background.webp", "Purple_Glass_Tile.webp",
-        "Purple_Jelly.webp", "Purple_Jewel_Block.webp", "Purple_Nanotech_Wall_1.webp", "Purple_Nanotech_Wall_2.webp",
-        "Purple_Nanotech_Wall_3.webp", "Purple_Tile.webp", "Purple_Tile_Background.webp", "Red_Big_Tile.webp",
-        "Red_Block.webp", "Red_Brick.webp", "Red_Brick_Wallpaper.webp", "Red_Candy_Block.webp",
-        "Red_Diagonal_Checker.webp", "Red_Glass_Tile.webp", "Red_Jelly.webp", "Red_Tile.webp",
-        "Red_Velvet_Background.webp", "Red_Wallpaper.webp", "Round_Moire.webp", "Ruin_Background.webp",
-        "Ruin_Tile_Background.webp", "Sail_-_Middle_Part.webp", "Sand.webp", "Sandstone.webp",
-        "Sandwall.webp", "Ship_Wall.webp", "Snow_Block.webp", "Sour_Ground.webp",
-        "Steel_Block.webp", "Stone_Background.webp", "Stone_Brick_Wall.webp", "Studded_Metal.webp",
-        "Temple_Background_Brick.webp", "Temple_Block.webp", "Temple_Block_Background.webp", "Temple_Brick.webp",
-        "Tree_Trunk_Block.webp", "Tree_Trunk_Wall.webp", "Turquoise_Block.webp", "Turquoise_Jewel_Block.webp",
-        "Unholy_Background.webp", "Urban_Background_1.webp", "Urban_Background_2.webp", "Urban_Background_3.webp",
-        "Vegetation_Background.webp", "Vegetation_Block.webp", "Wasteland_Wall.webp", "White_Block.webp",
-        "White_Brick.webp", "White_Jewel_Block.webp", "Wood_Block.webp", "Wood_Panel.webp",
-        "Wooden_Background.webp", "Yellow_Block.webp", "Yellow_Brick.webp", "Yellow_Brick_Wallpaper.webp",
-        "Yellow_Candy_Block.webp", "Yellow_Glass_Tile.webp", "Yellow_Jelly.webp", "Yellow_Tile.webp"
-    ];
+    // Blok Yükleme ve Akıllı İsim Çözümleme Döngüsü
+    blockInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
-    function loadDefaultBlocks() {
-        if (defaultBlockNames.length === 0) return;
-        
-        let loadedCount = 0;
+        customBlocks = [];
         blockPreview.innerHTML = '';
+        loadingStatus.style.color = "#4CAF50";
+        loadingStatus.innerText = `Processing ${files.length} blocks...`;
 
-        defaultBlockNames.forEach(fileName => {
-            const img = new Image();
-            img.src = `Blocks And Backgrounds/${fileName}`;
+        let processedCount = 0;
 
-            img.onload = function() {
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = 1;
-                tempCanvas.height = 1;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.drawImage(img, 0, 0, 1, 1);
-                const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
-                
-                const cleanName = fileName.split('.').slice(0, -1).join('.').replace(/_/g, ' ');
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
 
-                const blockObj = {
-                    image: img,
-                    rgb: [pixelData[0], pixelData[1], pixelData[2]],
-                    name: cleanName,
-                    count: 0 
+                img.onload = function() {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = 1;
+                    tempCanvas.height = 1;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(img, 0, 0, 1, 1);
+                    const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
+                    
+                    // Dosya uzantısını kaldır ve alt tireleri temizle temiz isim oluştur
+                    const cleanName = file.name.split('.').slice(0, -1).join('.').replace(/_/g, ' ');
+
+                    const blockObj = {
+                        image: img,
+                        rgb: [pixelData[0], pixelData[1], pixelData[2]],
+                        name: cleanName,
+                        count: 0 
+                    };
+
+                    customBlocks.push(blockObj);
+
+                    // Arayüzde Önizleme Kartı Oluşturma
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'block-wrapper';
+
+                    const thumb = document.createElement('img');
+                    thumb.src = img.src;
+                    thumb.className = 'block-thumb';
+                    thumb.title = cleanName;
+
+                    const removeBtn = document.createElement('div');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.title = "Exclude this block";
+                    
+                    removeBtn.addEventListener('click', function() {
+                        const index = customBlocks.indexOf(blockObj);
+                        if (index > -1) {
+                            customBlocks.splice(index, 1);
+                        }
+                        wrapper.remove();
+                        if (customBlocks.length === 0) {
+                            blockPreview.innerHTML = '<span style="color:#666; font-size:12px; margin:auto;">No blocks active.</span>';
+                        }
+                    });
+
+                    wrapper.appendChild(thumb);
+                    wrapper.appendChild(removeBtn);
+                    blockPreview.appendChild(wrapper);
+
+                    processedCount++;
+                    if (processedCount === files.length) {
+                        loadingStatus.innerText = `✓ All ${customBlocks.length} blocks successfully loaded and verified!`;
+                    }
                 };
-
-                customBlocks.push(blockObj);
-
-                const wrapper = document.createElement('div');
-                wrapper.className = 'block-wrapper';
-
-                const thumb = document.createElement('img');
-                thumb.src = img.src;
-                thumb.className = 'block-thumb';
-                thumb.title = cleanName;
-
-                const removeBtn = document.createElement('div');
-                removeBtn.className = 'remove-btn';
-                removeBtn.innerHTML = '&times;';
-                removeBtn.title = "Exclude this block";
-                
-                removeBtn.addEventListener('click', function() {
-                    const index = customBlocks.indexOf(blockObj);
-                    if (index > -1) {
-                        customBlocks.splice(index, 1);
-                    }
-                    wrapper.remove();
-                    if (customBlocks.length === 0) {
-                        blockPreview.innerHTML = '<span style="color:#666; font-size:12px; margin:auto;">No blocks active.</span>';
-                    }
-                });
-
-                wrapper.appendChild(thumb);
-                wrapper.appendChild(removeBtn);
-                blockPreview.appendChild(wrapper);
-
-                loadedCount++;
-                loadingStatus.innerText = `Assets loading: (${loadedCount}/${defaultBlockNames.length})`;
-                if (loadedCount === defaultBlockNames.length) {
-                    loadingStatus.style.color = "#4CAF50";
-                    loadingStatus.innerText = `✓ All ${defaultBlockNames.length} assets successfully initialized directly from storage!`;
-                }
             };
-
-            img.onerror = function() {
-                loadedCount++;
-                console.warn(`Could not load asset file: ${fileName}`);
-                if (loadedCount === defaultBlockNames.length) {
-                    loadingStatus.innerText = `Loaded with missing assets. (${customBlocks.length} active)`;
-                }
-            };
+            reader.readAsDataURL(file);
         });
-    }
-
-    window.addEventListener('DOMContentLoaded', loadDefaultBlocks);
+    });
 
     imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -467,7 +395,7 @@
             generateAutoPixelArt(targetW, targetH);
         } else if (mode === "blocks") {
             if (customBlocks.length === 0) {
-                alert("Error: No database assets available to perform mapping!");
+                alert("Error: No block assets available! Please upload your block textures first.");
                 return;
             }
             generateCustomBlockArt(targetW, targetH);
