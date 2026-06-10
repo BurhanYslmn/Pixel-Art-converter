@@ -159,7 +159,6 @@
             margin-top: 3px;
         }
 
-        /* YENİ EKLENEN KISIM: Footer ve Sosyal Medya Butonları */
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -196,6 +195,15 @@
         .dc-btn {
             background-color: #5865F2;
         }
+        
+        /* Durum bilgilendirme mesajı stili */
+        #loadingStatus {
+            text-align: center;
+            font-size: 12px;
+            color: #4CAF50;
+            margin-top: 5px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -209,18 +217,16 @@
     </div>
 
     <div class="form-group">
-        <label>2. Upload Block Images (You can select multiple):</label>
-        <input type="file" id="blockInput" accept="image/*" multiple>
-        <div class="block-preview-container" id="blockPreview">
-            <span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>
-        </div>
+        <label>2. Preloaded Game Blocks:</label>
+        <div id="loadingStatus">Loading system assets...</div>
+        <div class="block-preview-container" id="blockPreview"></div>
     </div>
 
     <div class="form-group">
         <label>3. Select Operation Mode:</label>
         <select id="modeSelect">
             <option value="auto">Option 1: Automatic Pixel Art</option>
-            <option value="blocks" selected>Option 2: Create with Uploaded Blocks</option>
+            <option value="blocks" selected>Option 2: Create with Preloaded Blocks</option>
         </select>
     </div>
 
@@ -255,7 +261,6 @@
 
 <script>
     const imageInput = document.getElementById('imageInput');
-    const blockInput = document.getElementById('blockInput');
     const blockPreview = document.getElementById('blockPreview');
     const modeSelect = document.getElementById('modeSelect');
     const pixelWidthInput = document.getElementById('pixelWidth');
@@ -264,10 +269,109 @@
     const resultCanvas = document.getElementById('resultCanvas');
     const reportSection = document.getElementById('reportSection');
     const reportContainer = document.getElementById('reportContainer');
+    const loadingStatus = document.getElementById('loadingStatus');
     const ctx = resultCanvas.getContext('2d');
 
     let uploadedImage = new Image();
     let customBlocks = []; 
+
+    // 254 adet webp görselinizin isim listesi (Sizin klasörünüzdeki birebir adlar)
+    const defaultBlockNames = [
+        "Alien_Cave_Wall.webp", "Arabic_Bricks_Background.webp", "Armored_Background.webp", "Ashen_Soil.webp",
+        "Barn_Wall.webp", "Beige_Brick.webp", "Black_Block.webp", "Black_Brick.webp", "Black_Diagonal_Checker.webp",
+        "Black_Glass_Tile.webp", "Black_Iron_Background_1.webp", "Black_Iron_Background_2.webp", "Black_Jelly.webp",
+        "Black_Jewel_Block.webp", "Black_Metal_Sheet.webp", "Black_Tile.webp", "Blue_Big_Tile.webp", "Blue_Block.webp",
+        "Blue_Brick.webp", "Blue_Candy_Block.webp", "Blue_Diagonal_Checker.webp", "Blue_Glass_Tile.webp", "Blue_Jelly.webp",
+        "Blue_Jewel_Block.webp", "Blue_Neon_Background.webp", "Blue_Spheres_Background.webp", "Blue_Tile.webp",
+        "Bolted_Dark_Background.webp", "Broken_Ruin_Background.webp", "Broken_Temple_Brick_1.webp", "Brown_Big_Tile.webp",
+        "Brown_Block.webp", "Brown_Brick_Wallpaper.webp", "Brown_Vegetation_Block.webp", "Castle_Wall.webp",
+        "Castle_Wall_Tile.webp", "Castle_Wallpaper.webp", "Clear_Jelly.webp", "Concrete_Block_1x1.webp",
+        "Cyan_Candy_Block.webp", "Dark_Red_Block.webp", "Dark_Stone_Block_1.webp", "Dark_Urban_Background_1.webp",
+        "Dark_Urban_Background_2.webp", "Dark_Urban_Background_3.webp", "Decorative_Temple_Block_2.webp",
+        "Dirty_Herringbone.webp", "Dirty_Wall_1.webp"
+        // NOT: Buraya listenizdeki diğer tüm (.webp) uzantılı dosya isimlerini eklemeye devam edebilirsiniz.
+    ];
+
+    // Sayfa açıldığında GitHub/Render üstündeki klasörden varlıkları çeken fonksiyon
+    function loadDefaultBlocks() {
+        if (defaultBlockNames.length === 0) return;
+        
+        let loadedCount = 0;
+        blockPreview.innerHTML = '';
+
+        defaultBlockNames.forEach(fileName => {
+            const img = new Image();
+            // Render üzerindeki tam konumuna gidip görseli talep ediyoruz
+            img.src = `Blocks And Backgrounds/${fileName}`;
+
+            img.onload = function() {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 1;
+                tempCanvas.height = 1;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(img, 0, 0, 1, 1);
+                const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
+                
+                const cleanName = fileName.split('.').slice(0, -1).join('.').replace(/_/g, ' ');
+
+                const blockObj = {
+                    image: img,
+                    rgb: [pixelData[0], pixelData[1], pixelData[2]],
+                    name: cleanName,
+                    count: 0 
+                };
+
+                customBlocks.push(blockObj);
+
+                // Arayüze önizleme kartını ekleme
+                const wrapper = document.createElement('div');
+                wrapper.className = 'block-wrapper';
+
+                const thumb = document.createElement('img');
+                thumb.src = img.src;
+                thumb.className = 'block-thumb';
+                thumb.title = cleanName;
+
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.title = "Exclude this block";
+                
+                removeBtn.addEventListener('click', function() {
+                    const index = customBlocks.indexOf(blockObj);
+                    if (index > -1) {
+                        customBlocks.splice(index, 1);
+                    }
+                    wrapper.remove();
+                    if (customBlocks.length === 0) {
+                        blockPreview.innerHTML = '<span style="color:#666; font-size:12px; margin:auto;">No blocks active.</span>';
+                    }
+                });
+
+                wrapper.appendChild(thumb);
+                wrapper.appendChild(removeBtn);
+                blockPreview.appendChild(wrapper);
+
+                loadedCount++;
+                loadingStatus.innerText = `Assets loaded successfully: (${loadedCount}/${defaultBlockNames.length})`;
+                if (loadedCount === defaultBlockNames.length) {
+                    loadingStatus.style.color = "#4CAF50";
+                    loadingStatus.innerText = "✓ All 254 assets successfully initialized directly from storage!";
+                }
+            };
+
+            img.onerror = function() {
+                loadedCount++;
+                console.warn(`Could not load asset file: ${fileName}`);
+                if (loadedCount === defaultBlockNames.length) {
+                    loadingStatus.innerText = `Loaded with missing assets. (${customBlocks.length} active)`;
+                }
+            };
+        });
+    }
+
+    // Başlangıç tetikleyicisi
+    window.addEventListener('DOMContentLoaded', loadDefaultBlocks);
 
     imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -275,71 +379,6 @@
         const reader = new FileReader();
         reader.onload = function(event) { uploadedImage.src = event.target.result; };
         reader.readAsDataURL(file);
-    });
-
-    blockInput.addEventListener('change', function(e) {
-        const files = e.target.files;
-        if (files.length === 0) return;
-
-        blockPreview.innerHTML = '';
-        customBlocks = [];
-
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = 1;
-                    tempCanvas.height = 1;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.drawImage(img, 0, 0, 1, 1);
-                    const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
-                    
-                    const cleanName = file.name.split('.').slice(0, -1).join('.');
-
-                    const blockObj = {
-                        image: img,
-                        rgb: [pixelData[0], pixelData[1], pixelData[2]],
-                        name: cleanName,
-                        count: 0 
-                    };
-
-                    customBlocks.push(blockObj);
-
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'block-wrapper';
-
-                    const thumb = document.createElement('img');
-                    thumb.src = img.src;
-                    thumb.className = 'block-thumb';
-                    thumb.title = cleanName;
-
-                    const removeBtn = document.createElement('div');
-                    removeBtn.className = 'remove-btn';
-                    removeBtn.innerHTML = '&times;';
-                    removeBtn.title = "Remove block";
-                    
-                    removeBtn.addEventListener('click', function() {
-                        const index = customBlocks.indexOf(blockObj);
-                        if (index > -1) {
-                            customBlocks.splice(index, 1);
-                        }
-                        wrapper.remove();
-
-                        if (customBlocks.length === 0) {
-                            blockPreview.innerHTML = '<span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>';
-                        }
-                    });
-
-                    wrapper.appendChild(thumb);
-                    wrapper.appendChild(removeBtn);
-                    blockPreview.appendChild(wrapper);
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
     });
 
     function getClosestBlock(r, g, b) {
@@ -376,7 +415,7 @@
             generateAutoPixelArt(targetW, targetH);
         } else if (mode === "blocks") {
             if (customBlocks.length === 0) {
-                alert("Error: To generate with blocks, you must first upload block images in 'Option 2'!");
+                alert("Error: No database assets available to perform mapping!");
                 return;
             }
             generateCustomBlockArt(targetW, targetH);
@@ -453,7 +492,6 @@
                 pixelIndex += 4; 
             }
         }
-
         drawInventoryReport();
     }
 
