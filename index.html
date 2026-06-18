@@ -107,6 +107,7 @@
             border: 2px solid #3f3f5a;
             image-rendering: pixelated; 
             max-width: 100%;
+            cursor: crosshair; /* Tıklanabilir hissi vermek için imleci değiştirdik */
         }
 
         .report-section {
@@ -159,7 +160,6 @@
             margin-top: 3px;
         }
 
-        /* YENİ EKLENEN KISIM: Footer ve Sosyal Medya Butonları */
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -240,7 +240,7 @@
 
     <button id="generateBtn">Generate Pixel Art</button>
 
-    <canvas id="resultCanvas" width="600" height="600"></canvas>
+    <canvas id="resultCanvas" width="600" height="600" title="Kullanılan bloğu görmek için resmin üzerine tıkla!"></canvas>
 
     <div class="report-section" id="reportSection">
         <h3 class="report-title">📦 Used Block List & Quantities</h3>
@@ -272,6 +272,29 @@
 
     let uploadedImage = new Image();
     let customBlocks = []; 
+
+    // YENİ: Blok konumlarını haritalamak için eklendi
+    let blockMap = [];
+    let currentGridW = 0;
+    let currentGridH = 0;
+    let targetCols = 0;
+    let targetRows = 0;
+
+    // YENİ: Tıklayınca çıkacak Tooltip elementi
+    const blockTooltip = document.createElement('div');
+    blockTooltip.style.position = 'absolute';
+    blockTooltip.style.display = 'none';
+    blockTooltip.style.backgroundColor = '#2a2a40';
+    blockTooltip.style.color = '#b3b3cc';
+    blockTooltip.style.padding = '10px 15px';
+    blockTooltip.style.border = '2px solid #4CAF50';
+    blockTooltip.style.borderRadius = '8px';
+    blockTooltip.style.boxShadow = '0 6px 15px rgba(0,0,0,0.6)';
+    blockTooltip.style.pointerEvents = 'none';
+    blockTooltip.style.zIndex = '1000';
+    blockTooltip.style.fontSize = '13px';
+    document.body.appendChild(blockTooltip);
+    let tooltipTimeout;
 
     imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -375,6 +398,9 @@
         const targetH = parseInt(pixelHeightInput.value);
         const mode = modeSelect.value;
 
+        // Reset map
+        blockMap = [];
+
         if (mode === "auto") {
             reportSection.style.display = 'none'; 
             generateAutoPixelArt(targetW, targetH);
@@ -416,12 +442,20 @@
         const blockGridW = resultCanvas.width / targetW;
         const blockGridH = resultCanvas.height / targetH;
 
+        // YENİ: Canvas koordinat değişkenlerini globale kaydet
+        currentGridW = blockGridW;
+        currentGridH = blockGridH;
+        targetCols = targetW;
+        targetRows = targetH;
+
         const jitterAmount = 30; 
 
         customBlocks.forEach(b => b.count = 0);
 
         let pixelIndex = 0;
         for (let y = 0; y < targetH; y++) {
+            blockMap[y] = []; // YENİ: Satır dizisini başlat
+
             for (let x = 0; x < targetW; x++) {
                 let r = data[pixelIndex];
                 let g = data[pixelIndex+1];
@@ -441,6 +475,7 @@
                     
                     if (closest) {
                         closest.count++;
+                        blockMap[y][x] = closest; // YENİ: Bloğu haritaya kaydet
 
                         let currentX = Math.floor(x * blockGridW);
                         let currentY = Math.floor(y * blockGridH);
@@ -451,7 +486,11 @@
                         let drawH = nextY - currentY;
 
                         ctx.drawImage(closest.image, currentX, currentY, drawW, drawH);
+                    } else {
+                        blockMap[y][x] = null;
                     }
+                } else {
+                    blockMap[y][x] = null;
                 }
                 
                 pixelIndex += 4; 
@@ -460,6 +499,40 @@
 
         drawInventoryReport();
     }
+
+    // YENİ: Canvas Tıklama Etkinliği (Haritadaki bloğu bulma)
+    resultCanvas.addEventListener('click', function(e) {
+        if (modeSelect.value !== "blocks" || blockMap.length === 0) return;
+
+        const rect = resultCanvas.getBoundingClientRect();
+        
+        // CSS ile canvas boyutu değişirse diye oran hesaplaması
+        const scaleX = resultCanvas.width / rect.width;
+        const scaleY = resultCanvas.height / rect.height;
+
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+
+        const gridX = Math.floor(mouseX / currentGridW);
+        const gridY = Math.floor(mouseY / currentGridH);
+
+        if (gridY >= 0 && gridY < targetRows && gridX >= 0 && gridX < targetCols) {
+            const block = blockMap[gridY][gridX];
+            if (block) {
+                // Tooltip içeriğini ve konumunu ayarla
+                blockTooltip.innerHTML = `Kullanılan Blok:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
+                blockTooltip.style.display = 'block';
+                blockTooltip.style.left = (e.pageX + 15) + 'px';
+                blockTooltip.style.top = (e.pageY + 15) + 'px';
+
+                // 3 saniye sonra tooltip'i otomatik gizle
+                clearTimeout(tooltipTimeout);
+                tooltipTimeout = setTimeout(() => {
+                    blockTooltip.style.display = 'none';
+                }, 3000);
+            }
+        }
+    });
 
     function drawInventoryReport() {
         reportContainer.innerHTML = ''; 
