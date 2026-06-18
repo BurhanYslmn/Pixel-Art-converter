@@ -263,7 +263,7 @@
         </div>
     </div>
 
-    <canvas id="resultCanvas" width="600" height="600" title="Click on the image to see the block used!"></canvas>
+    <canvas id="resultCanvas" width="600" height="600" title="Click on the image to see the used block!"></canvas>
 
     <div class="report-section" id="reportSection">
         <h3 class="report-title">📦 Used Block List & Quantities</h3>
@@ -310,7 +310,7 @@
     let currentGridH = 0;
     let targetCols = 0;
     let targetRows = 0;
-    let lastProjectData = null;
+    let sonProjeVerisi = null;
 
     const blockTooltip = document.createElement('div');
     blockTooltip.style.position = 'absolute';
@@ -448,7 +448,7 @@
         const mode = modeSelect.value;
 
         blockMap = [];
-        lastProjectData = null; 
+        sonProjeVerisi = null; 
 
         if (mode === "auto") {
             reportSection.style.display = 'none'; 
@@ -478,12 +478,12 @@
     });
 
     saveJsonBtn.addEventListener('click', function() {
-        if (!lastProjectData || lastProjectData.matrix.length === 0) {
-            alert("To save a project, you must first generate Pixel Art using Option 2!");
+        if (!sonProjeVerisi || sonProjeVerisi.matrix.length === 0) {
+            alert("To download a project file, you must first generate Pixel Art using Option 2!");
             return;
         }
         
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastProjectData));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sonProjeVerisi));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
         downloadAnchor.setAttribute("download", `pixel-project-${Date.now()}.json`);
@@ -590,7 +590,7 @@
             }
         }
 
-        lastProjectData = {
+        sonProjeVerisi = {
             width: targetW,
             height: targetH,
             matrix: flatMatrix
@@ -606,14 +606,14 @@
         const reader = new FileReader();
         reader.onload = function(evt) {
             try {
-                const project = JSON.parse(evt.target.result);
-                if(!project.matrix || !project.width || !project.height) throw new Error();
+                const proje = JSON.parse(evt.target.result);
+                if(!proje.matrix || !proje.width || !proje.height) throw new Error();
                 
                 blockMap = [];
-                for(let i=0; i<project.height; i++) blockMap[i] = [];
+                for(let i=0; i<proje.height; i++) blockMap[i] = [];
                 
-                targetCols = project.width;
-                targetRows = project.height;
+                targetCols = proje.width;
+                targetRows = proje.height;
                 
                 currentGridW = resultCanvas.width / targetCols;
                 currentGridH = resultCanvas.height / targetRows;
@@ -624,7 +624,7 @@
                 let objCountMap = {};
                 let loadedImages = 0;
                 
-                project.matrix.forEach(pixel => {
+                proje.matrix.forEach(pixel => {
                     blockMap[pixel.y][pixel.x] = { name: pixel.blockName };
                     
                     if(!objCountMap[pixel.blockName]) {
@@ -641,8 +641,8 @@
                         ctx.drawImage(tempImg, currentX, currentY, nextX - currentX, nextY - currentY);
                         
                         loadedImages++;
-                        if(loadedImages === project.matrix.length) {
-                            renderReportFromJson(objCountMap);
+                        if(loadedImages === proje.matrix.length) {
+                            raporuJsonDanOlustur(objCountMap);
                         }
                     };
                     tempImg.src = pixel.src;
@@ -655,7 +655,7 @@
         reader.readAsText(file);
     });
 
-    function renderReportFromJson(objCountMap) {
+    function raporuJsonDanOlustur(objCountMap) {
         reportContainer.innerHTML = ''; 
         
         let sortedBlocks = Object.entries(objCountMap).sort((a, b) => b[1].count - a[1].count);
@@ -691,6 +691,7 @@
         if (modeSelect.value === "auto" || blockMap.length === 0) return;
 
         const rect = resultCanvas.getBoundingClientRect();
+        
         const scaleX = resultCanvas.width / rect.width;
         const scaleY = resultCanvas.height / rect.height;
 
@@ -703,7 +704,7 @@
         if (gridY >= 0 && gridY < targetRows && gridX >= 0 && gridX < targetCols) {
             const block = blockMap[gridY][gridX];
             if (block) {
-                blockTooltip.innerHTML = `Block used:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
+                blockTooltip.innerHTML = `Used Block:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
                 blockTooltip.style.display = 'block';
                 blockTooltip.style.left = (e.pageX + 15) + 'px';
                 blockTooltip.style.top = (e.pageY + 15) + 'px';
