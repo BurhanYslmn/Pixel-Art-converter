@@ -6,6 +6,13 @@ Perfect for creators, builders, and gamers (**Minecraft, Growtopia, Pixel Worlds
 
 ---
 
+## 🎥 Video Tutorial
+Learn how to use the converter and its features in this quick walkthrough:
+
+[![Watch the tutorial video](https://img.youtube.com/vi/X3oSTfbrhc0/0.jpg)](https://youtu.be/X3oSTfbrhc0)
+
+---
+
 ## 🚀 Features
 
 * 🌟 **Option 1: Automatic Pixel Art**  
