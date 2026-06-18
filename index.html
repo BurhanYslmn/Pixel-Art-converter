@@ -207,7 +207,6 @@
             background-color: #333;
         }
         
-        /* Gizleme Sınıfı */
         .hidden { display: none !important; }
     </style>
 </head>
@@ -252,8 +251,8 @@
 
         <div style="display: flex; gap: 10px;">
             <button id="generateBtn" style="flex: 2;">Generate Pixel Art</button>
-            <button id="saveBtn" style="flex: 1;">Görseli Kaydet</button>
-            <button id="saveJsonBtn" style="flex: 1;">Projeyi Kaydet (.json)</button>
+            <button id="saveBtn" style="flex: 1;">Save Image</button>
+            <button id="saveJsonBtn" style="flex: 1;">Save Project (.json)</button>
         </div>
     </div>
 
@@ -264,7 +263,7 @@
         </div>
     </div>
 
-    <canvas id="resultCanvas" width="600" height="600" title="Kullanılan bloğu görmek için resmin üzerine tıkla!"></canvas>
+    <canvas id="resultCanvas" width="600" height="600" title="Click on the image to see the block used!"></canvas>
 
     <div class="report-section" id="reportSection">
         <h3 class="report-title">📦 Used Block List & Quantities</h3>
@@ -291,8 +290,8 @@
     
     const generateBtn = document.getElementById('generateBtn');
     const saveBtn = document.getElementById('saveBtn');
-    const saveJsonBtn = document.getElementById('saveJsonBtn'); // YENİ
-    const jsonUpload = document.getElementById('jsonUpload'); // YENİ
+    const saveJsonBtn = document.getElementById('saveJsonBtn');
+    const jsonUpload = document.getElementById('jsonUpload');
     
     const resultCanvas = document.getElementById('resultCanvas');
     const reportSection = document.getElementById('reportSection');
@@ -311,9 +310,8 @@
     let currentGridH = 0;
     let targetCols = 0;
     let targetRows = 0;
-    let sonProjeVerisi = null; // YENİ: JSON indirmek için projeyi hafızada tutar
+    let lastProjectData = null;
 
-    // Tooltip Elementi Kurulumu
     const blockTooltip = document.createElement('div');
     blockTooltip.style.position = 'absolute';
     blockTooltip.style.display = 'none';
@@ -329,7 +327,6 @@
     document.body.appendChild(blockTooltip);
     let tooltipTimeout;
 
-    // Arayüz Değiştirici (Option 1, 2, 3 arası geçişler)
     modeSelect.addEventListener('change', function() {
         if (this.value === "inspect") {
             generatorArea.classList.add('hidden');
@@ -376,7 +373,6 @@
                     
                     const cleanName = file.name.split('.').slice(0, -1).join('.');
 
-                    // Resmin orijinal yolunu tutmalıyız ki projeyi yüklerken tekrar çizebilelim
                     const blockObj = {
                         image: img,
                         src: event.target.result, 
@@ -452,7 +448,7 @@
         const mode = modeSelect.value;
 
         blockMap = [];
-        sonProjeVerisi = null; 
+        lastProjectData = null; 
 
         if (mode === "auto") {
             reportSection.style.display = 'none'; 
@@ -468,7 +464,7 @@
 
     saveBtn.addEventListener('click', function() {
         if (blockMap.length === 0 && modeSelect.value === "blocks") {
-            alert("Lütfen önce bir ana görsel yükleyin ve Pixel Art oluşturun!");
+            alert("Please upload a main image and generate pixel art first!");
             return;
         }
         
@@ -481,14 +477,13 @@
         document.body.removeChild(downloadLink);
     });
 
-    // YENİ: JSON İndirme Butonu Fonksiyonu
     saveJsonBtn.addEventListener('click', function() {
-        if (!sonProjeVerisi || sonProjeVerisi.matrix.length === 0) {
-            alert("Proje dosyası indirebilmek için önce Option 2 ile Pixel Art oluşturmalısınız!");
+        if (!lastProjectData || lastProjectData.matrix.length === 0) {
+            alert("To save a project, you must first generate Pixel Art using Option 2!");
             return;
         }
         
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sonProjeVerisi));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastProjectData));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
         downloadAnchor.setAttribute("download", `pixel-project-${Date.now()}.json`);
@@ -533,7 +528,6 @@
 
         const jitterAmount = 30; 
         
-        // JSON çıktısı için matris toplayıcı
         let flatMatrix = [];
 
         customBlocks.forEach(b => b.count = 0);
@@ -562,7 +556,6 @@
                     if (closest) {
                         closest.count++;
                         
-                        // Hem tıklama hem de kaydetme için objeyi sakla
                         let blockInfo = {
                             name: closest.name,
                             src: closest.src
@@ -597,8 +590,7 @@
             }
         }
 
-        // Projeyi json için hafızaya al
-        sonProjeVerisi = {
+        lastProjectData = {
             width: targetW,
             height: targetH,
             matrix: flatMatrix
@@ -607,7 +599,6 @@
         drawInventoryReport();
     }
 
-    // YENİ: JSON DOSYASINI İÇERİ AKTARMA
     jsonUpload.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -615,15 +606,14 @@
         const reader = new FileReader();
         reader.onload = function(evt) {
             try {
-                const proje = JSON.parse(evt.target.result);
-                if(!proje.matrix || !proje.width || !proje.height) throw new Error();
+                const project = JSON.parse(evt.target.result);
+                if(!project.matrix || !project.width || !project.height) throw new Error();
                 
-                // Matrisi Tıklamalar İçin Yeniden Kur
                 blockMap = [];
-                for(let i=0; i<proje.height; i++) blockMap[i] = [];
+                for(let i=0; i<project.height; i++) blockMap[i] = [];
                 
-                targetCols = proje.width;
-                targetRows = proje.height;
+                targetCols = project.width;
+                targetRows = project.height;
                 
                 currentGridW = resultCanvas.width / targetCols;
                 currentGridH = resultCanvas.height / targetRows;
@@ -631,11 +621,10 @@
                 ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
                 ctx.imageSmoothingEnabled = false;
                 
-                // Eski projede kullanılan blokları sayfaya geri çizme
                 let objCountMap = {};
                 let loadedImages = 0;
                 
-                proje.matrix.forEach(pixel => {
+                project.matrix.forEach(pixel => {
                     blockMap[pixel.y][pixel.x] = { name: pixel.blockName };
                     
                     if(!objCountMap[pixel.blockName]) {
@@ -643,7 +632,6 @@
                     }
                     objCountMap[pixel.blockName].count++;
 
-                    // Resmi Base64'ten oluşturup tuvale çiz
                     let tempImg = new Image();
                     tempImg.onload = function() {
                         let currentX = Math.floor(pixel.x * currentGridW);
@@ -653,22 +641,21 @@
                         ctx.drawImage(tempImg, currentX, currentY, nextX - currentX, nextY - currentY);
                         
                         loadedImages++;
-                        if(loadedImages === proje.matrix.length) {
-                            // Çizim bitince raporu oluştur
-                            raporuJsonDanOlustur(objCountMap);
+                        if(loadedImages === project.matrix.length) {
+                            renderReportFromJson(objCountMap);
                         }
                     };
                     tempImg.src = pixel.src;
                 });
                 
             } catch (error) {
-                alert("Geçersiz veya bozuk bir proje dosyası yüklediniz!");
+                alert("Invalid or corrupted project file!");
             }
         };
         reader.readAsText(file);
     });
 
-    function raporuJsonDanOlustur(objCountMap) {
+    function renderReportFromJson(objCountMap) {
         reportContainer.innerHTML = ''; 
         
         let sortedBlocks = Object.entries(objCountMap).sort((a, b) => b[1].count - a[1].count);
@@ -704,7 +691,6 @@
         if (modeSelect.value === "auto" || blockMap.length === 0) return;
 
         const rect = resultCanvas.getBoundingClientRect();
-        
         const scaleX = resultCanvas.width / rect.width;
         const scaleY = resultCanvas.height / rect.height;
 
@@ -717,7 +703,7 @@
         if (gridY >= 0 && gridY < targetRows && gridX >= 0 && gridX < targetCols) {
             const block = blockMap[gridY][gridX];
             if (block) {
-                blockTooltip.innerHTML = `Kullanılan Blok:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
+                blockTooltip.innerHTML = `Block used:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
                 blockTooltip.style.display = 'block';
                 blockTooltip.style.left = (e.pageX + 15) + 'px';
                 blockTooltip.style.top = (e.pageY + 15) + 'px';
