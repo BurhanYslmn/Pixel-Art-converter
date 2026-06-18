@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Art & Block Converter (v3.2)</title>
+    <title>Pixel Art & Block Converter (v3.3)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -48,6 +48,13 @@
             margin-top: 10px;
         }
         button:hover { background-color: #45a049; }
+        
+        #saveBtn {
+            background-color: #008CBA;
+        }
+        #saveBtn:hover {
+            background-color: #007399;
+        }
         
         .block-preview-container {
             display: flex;
@@ -107,7 +114,7 @@
             border: 2px solid #3f3f5a;
             image-rendering: pixelated; 
             max-width: 100%;
-            cursor: crosshair; /* Tıklanabilir hissi vermek için imleci değiştirdik */
+            cursor: crosshair;
         }
 
         .report-section {
@@ -238,7 +245,10 @@
         </div>
     </div>
 
-    <button id="generateBtn">Generate Pixel Art</button>
+    <div style="display: flex; gap: 10px;">
+        <button id="generateBtn" style="flex: 1;">Generate Pixel Art</button>
+        <button id="saveBtn" style="flex: 1;">Görseli Kaydet</button>
+    </div>
 
     <canvas id="resultCanvas" width="600" height="600" title="Kullanılan bloğu görmek için resmin üzerine tıkla!"></canvas>
 
@@ -265,6 +275,7 @@
     const pixelWidthInput = document.getElementById('pixelWidth');
     const pixelHeightInput = document.getElementById('pixelHeight');
     const generateBtn = document.getElementById('generateBtn');
+    const saveBtn = document.getElementById('saveBtn');
     const resultCanvas = document.getElementById('resultCanvas');
     const reportSection = document.getElementById('reportSection');
     const reportContainer = document.getElementById('reportContainer');
@@ -272,15 +283,12 @@
 
     let uploadedImage = new Image();
     let customBlocks = []; 
-
-    // YENİ: Blok konumlarını haritalamak için eklendi
     let blockMap = [];
     let currentGridW = 0;
     let currentGridH = 0;
     let targetCols = 0;
     let targetRows = 0;
 
-    // YENİ: Tıklayınca çıkacak Tooltip elementi
     const blockTooltip = document.createElement('div');
     blockTooltip.style.position = 'absolute';
     blockTooltip.style.display = 'none';
@@ -398,7 +406,6 @@
         const targetH = parseInt(pixelHeightInput.value);
         const mode = modeSelect.value;
 
-        // Reset map
         blockMap = [];
 
         if (mode === "auto") {
@@ -411,6 +418,25 @@
             }
             generateCustomBlockArt(targetW, targetH);
         }
+    });
+
+    // HATASI DÜZELTİLEN KISIM
+    saveBtn.addEventListener('click', function() {
+        if (!uploadedImage.src) {
+            alert("Lütfen önce bir ana görsel yükleyin ve Pixel Art oluşturun!");
+            return;
+        }
+        
+        const dataURL = resultCanvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.href = dataURL;
+        
+        // Tırnak hatası (Syntax Error) burada düzeltildi:
+        downloadLink.download = `pixel-art-${Date.now()}.png`; 
+        
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     });
 
     function generateAutoPixelArt(targetW, targetH) {
@@ -442,7 +468,6 @@
         const blockGridW = resultCanvas.width / targetW;
         const blockGridH = resultCanvas.height / targetH;
 
-        // YENİ: Canvas koordinat değişkenlerini globale kaydet
         currentGridW = blockGridW;
         currentGridH = blockGridH;
         targetCols = targetW;
@@ -454,7 +479,7 @@
 
         let pixelIndex = 0;
         for (let y = 0; y < targetH; y++) {
-            blockMap[y] = []; // YENİ: Satır dizisini başlat
+            blockMap[y] = []; 
 
             for (let x = 0; x < targetW; x++) {
                 let r = data[pixelIndex];
@@ -475,7 +500,7 @@
                     
                     if (closest) {
                         closest.count++;
-                        blockMap[y][x] = closest; // YENİ: Bloğu haritaya kaydet
+                        blockMap[y][x] = closest; 
 
                         let currentX = Math.floor(x * blockGridW);
                         let currentY = Math.floor(y * blockGridH);
@@ -500,13 +525,11 @@
         drawInventoryReport();
     }
 
-    // YENİ: Canvas Tıklama Etkinliği (Haritadaki bloğu bulma)
     resultCanvas.addEventListener('click', function(e) {
         if (modeSelect.value !== "blocks" || blockMap.length === 0) return;
 
         const rect = resultCanvas.getBoundingClientRect();
         
-        // CSS ile canvas boyutu değişirse diye oran hesaplaması
         const scaleX = resultCanvas.width / rect.width;
         const scaleY = resultCanvas.height / rect.height;
 
@@ -519,13 +542,11 @@
         if (gridY >= 0 && gridY < targetRows && gridX >= 0 && gridX < targetCols) {
             const block = blockMap[gridY][gridX];
             if (block) {
-                // Tooltip içeriğini ve konumunu ayarla
                 blockTooltip.innerHTML = `Kullanılan Blok:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
                 blockTooltip.style.display = 'block';
                 blockTooltip.style.left = (e.pageX + 15) + 'px';
                 blockTooltip.style.top = (e.pageY + 15) + 'px';
 
-                // 3 saniye sonra tooltip'i otomatik gizle
                 clearTimeout(tooltipTimeout);
                 tooltipTimeout = setTimeout(() => {
                     blockTooltip.style.display = 'none';
