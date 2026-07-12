@@ -1,774 +1,1595 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Pixel Art & Block Converter (v3.4)</title>
+
     <style>
+
         body {
+
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
             background-color: #1e1e2f;
+
             color: #fff;
+
             padding: 20px;
+
             display: flex;
+
             justify-content: center;
+
         }
+
         .container {
+
             background-color: #2a2a40;
+
             padding: 25px;
+
             border-radius: 10px;
+
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+
             width: 100%;
+
             max-width: 600px;
+
         }
+
         h2 { text-align: center; margin-top: 0; color: #4CAF50; }
+
         .form-group { margin-bottom: 20px; border-bottom: 1px solid #3f3f5a; padding-bottom: 15px; }
+
         .form-group:last-of-type { border-bottom: none; }
+
         label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #b3b3cc; }
+
         input[type="file"], input[type="number"], select {
+
             width: 100%;
+
             padding: 10px;
+
             border: 1px solid #3f3f5a;
+
             border-radius: 5px;
+
             background-color: #1e1e2f;
+
             color: #fff;
+
             box-sizing: border-box;
+
         }
+
         button {
+
             width: 100%;
+
             padding: 14px;
+
             background-color: #4CAF50;
+
             color: white;
+
             border: none;
+
             border-radius: 5px;
+
             font-size: 16px;
+
             font-weight: bold;
+
             cursor: pointer;
+
             transition: background 0.3s;
+
             margin-top: 10px;
+
         }
+
         button:hover { background-color: #45a049; }
+
         
+
         #saveBtn, #saveJsonBtn {
+
             background-color: #008CBA;
+
         }
+
         #saveBtn:hover, #saveJsonBtn:hover {
+
             background-color: #007399;
+
         }
+
         
+
         .block-preview-container {
+
             display: flex;
+
             gap: 12px;
+
             flex-wrap: wrap;
+
             margin-top: 10px;
+
             background: #1e1e2f;
+
             padding: 12px;
+
             border-radius: 5px;
+
             min-height: 50px;
+
             max-height: 180px;
+
             overflow-y: auto;
+
         }
+
+
 
         .block-wrapper {
+
             position: relative;
+
             display: inline-block;
+
             width: 44px;
+
             height: 44px;
+
         }
+
         .block-thumb {
+
             width: 40px;
+
             height: 40px;
+
             border-radius: 4px;
+
             border: 2px solid #4CAF50;
+
             object-fit: cover;
+
             display: block;
+
         }
+
         .remove-btn {
+
             position: absolute;
+
             top: -5px;
+
             right: -5px;
+
             background-color: #ff4d4d;
+
             color: white;
+
             border-radius: 50%;
+
             width: 16px;
+
             height: 16px;
+
             font-size: 11px;
+
             font-weight: bold;
+
             text-align: center;
+
             line-height: 15px;
+
             cursor: pointer;
+
             box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+
             user-select: none;
+
             transition: background 0.2s, transform 0.1s;
+
             z-index: 10;
+
         }
+
         .remove-btn:hover {
+
             background-color: #ff1a1a;
+
             transform: scale(1.1);
+
         }
+
+
 
         canvas {
+
             display: block;
+
             margin: 20px auto 0;
+
             background-color: #000;
+
             border: 2px solid #3f3f5a;
+
             image-rendering: pixelated; 
+
             max-width: 100%;
+
             cursor: crosshair;
+
         }
+
+
 
         .report-section {
+
             margin-top: 25px;
+
             background-color: #1e1e2f;
+
             padding: 15px;
+
             border-radius: 8px;
+
             border: 1px solid #3f3f5a;
+
             display: none;
+
         }
+
         .report-title {
+
             font-size: 16px;
+
             color: #4CAF50;
+
             margin-top: 0;
+
             margin-bottom: 15px;
+
             border-bottom: 1px solid #3f3f5a;
+
             padding-bottom: 5px;
+
         }
+
         .report-grid {
+
             display: grid;
+
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+
             gap: 10px;
+
         }
+
         .report-item {
+
             background-color: #2a2a40;
+
             padding: 10px;
+
             border-radius: 6px;
+
             text-align: center;
+
             border: 1px solid #3f3f5a;
+
         }
+
         .report-item img {
+
             width: 45px;
+
             height: 45px;
+
             object-fit: cover;
+
             border-radius: 4px;
+
             border: 2px solid #4CAF50;
+
         }
+
         .report-item-name {
+
             font-size: 11px;
+
             color: #b3b3cc;
+
             margin-top: 5px;
+
             white-space: nowrap;
+
             overflow: hidden;
+
             text-overflow: ellipsis;
+
         }
+
         .report-item-count {
+
             font-size: 14px;
+
             font-weight: bold;
+
             color: #fff;
+
             margin-top: 3px;
+
         }
+
+
 
         .footer {
+
             margin-top: 30px;
+
             text-align: center;
+
             border-top: 1px solid #3f3f5a;
+
             padding-top: 20px;
+
         }
+
         .footer p {
+
             color: #b3b3cc;
+
             font-size: 15px;
+
             margin-bottom: 15px;
+
         }
+
         .social-links {
+
             display: flex;
+
             justify-content: center;
+
             gap: 15px;
+
         }
+
         .social-btn {
+
             padding: 10px 20px;
+
             border-radius: 5px;
+
             text-decoration: none;
+
             color: white;
+
             font-weight: bold;
+
             font-size: 14px;
+
             transition: opacity 0.3s, transform 0.2s;
+
             display: inline-block;
+
         }
+
         .social-btn:hover {
+
             opacity: 0.9;
+
             transform: translateY(-2px);
+
         }
+
         .insta-btn {
+
             background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+
         }
+
         .dc-btn {
+
             background-color: #5865F2;
+
         }
+
         .github-btn {
+
             background-color: #333;
+
         }
+
         
+
         .hidden { display: none !important; }
+
     </style>
+
 </head>
+
 <body>
 
+
+
 <div class="container">
+
     <h2>Pixel Art & Block Converter</h2>
+
     
+
     <div class="form-group">
+
         <label>Select Operation Mode:</label>
+
         <select id="modeSelect">
+
             <option value="auto">Option 1: Automatic Pixel Art</option>
+
             <option value="blocks" selected>Option 2: Create with Uploaded Blocks</option>
+
             <option value="inspect">Option 3: Inspect Saved Project (.json)</option> 
+
         </select>
+
     </div>
+
+
 
     <div id="generatorArea">
+
         <div class="form-group">
+
             <label>1. Upload Main Image to Convert:</label>
+
             <input type="file" id="imageInput" accept="image/*">
+
         </div>
+
+
 
         <div class="form-group" id="blockUploadGroup">
+
             <label>2. Upload Block Images (You can select multiple):</label>
+
             <input type="file" id="blockInput" accept="image/*" multiple>
+
             <div class="block-preview-container" id="blockPreview">
+
                 <span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>
+
             </div>
+
         </div>
+
+
 
         <div class="form-group" style="display: flex; gap: 10px;">
+
             <div style="flex: 1;">
+
                 <label>Width (Block Count):</label>
+
                 <input type="number" id="pixelWidth" value="50" min="8" max="128">
+
             </div>
+
             <div style="flex: 1;">
+
                 <label>Height (Block Count):</label>
+
                 <input type="number" id="pixelHeight" value="50" min="8" max="128">
+
             </div>
+
         </div>
+
+
+
+        <div class="form-group">
+
+            <label>Output Image Width (px):</label>
+
+            <input type="number" id="outputWidthPx" value="600" min="16" max="4096" step="1">
+
+            <small style="display:block; color:#888; margin-top:6px; font-size:12px; font-weight:normal;">
+
+                Like in Paint: enter only the width — the height is calculated automatically to keep the block grid's proportions.
+
+            </small>
+
+        </div>
+
+
 
         <div style="display: flex; gap: 10px;">
+
             <button id="generateBtn" style="flex: 2;">Generate Pixel Art</button>
+
             <button id="saveBtn" style="flex: 1;">Save Image</button>
+
             <button id="saveJsonBtn" style="flex: 1;">Save Project (.json)</button>
+
         </div>
+
     </div>
 
+
+
     <div id="inspectorArea" class="hidden">
+
         <div class="form-group" style="border: 2px dashed #4CAF50; padding: 20px; text-align: center; border-radius: 8px; background: #222;">
+
             <label style="color: #4CAF50; font-size: 16px; margin-bottom: 10px;">Load your previously saved project file (.json) to inspect pixels:</label>
+
             <input type="file" id="jsonUpload" accept=".json">
+
         </div>
+
     </div>
+
+
 
     <canvas id="resultCanvas" width="600" height="600" title="Click on the image to see the used block!"></canvas>
 
+
+
     <div class="report-section" id="reportSection">
+
         <h3 class="report-title">📦 Used Block List & Quantities</h3>
+
         <div class="report-grid" id="reportContainer"></div>
+
     </div>
+
+
 
     <div class="footer">
+
         <p>Made By: <strong>Burhan</strong></p>
+
         <div class="social-links">
+
             <a href="https://www.instagram.com/burhanpw/" target="_blank" class="social-btn insta-btn">Instagram</a>
+
             <a href="https://discord.gg/tHA2dA6pYY" target="_blank" class="social-btn dc-btn">Discord</a>
+
             <a href="https://github.com/BurhanYslmn/Pixel-Art-converter" target="_blank" class="social-btn github-btn">GitHub</a>
+
         </div>
+
     </div>
+
 </div>
 
+
+
 <script>
+
     const imageInput = document.getElementById('imageInput');
+
     const blockInput = document.getElementById('blockInput');
+
     const blockPreview = document.getElementById('blockPreview');
+
     const modeSelect = document.getElementById('modeSelect');
+
     const pixelWidthInput = document.getElementById('pixelWidth');
+
     const pixelHeightInput = document.getElementById('pixelHeight');
+
+    const outputWidthInput = document.getElementById('outputWidthPx');
+
     
+
     const generateBtn = document.getElementById('generateBtn');
+
     const saveBtn = document.getElementById('saveBtn');
+
     const saveJsonBtn = document.getElementById('saveJsonBtn');
+
     const jsonUpload = document.getElementById('jsonUpload');
+
     
+
     const resultCanvas = document.getElementById('resultCanvas');
+
     const reportSection = document.getElementById('reportSection');
+
     const reportContainer = document.getElementById('reportContainer');
+
     
+
     const generatorArea = document.getElementById('generatorArea');
+
     const inspectorArea = document.getElementById('inspectorArea');
+
     const blockUploadGroup = document.getElementById('blockUploadGroup');
+
     
+
     const ctx = resultCanvas.getContext('2d');
 
+
+
     let uploadedImage = new Image();
+
     let customBlocks = []; 
+
     let blockMap = [];
+
     let currentGridW = 0;
+
     let currentGridH = 0;
+
     let targetCols = 0;
+
     let targetRows = 0;
+
     let sonProjeVerisi = null;
 
+
+
     // Her blok/piksel hücresinin TAM olarak aynı piksel boyutunda çizilmesini sağlamak için
-    // kullanılacak hücre boyutunu hesaplar. Sabit 600x600 kanvasa bölme yaparsak
-    // (örn. 600/45 = 13.33px) küsuratlı sonuç çıkar ve Math.floor ile yuvarlanınca
-    // bazı bloklar 13px bazıları 14px olur -> bloklar "bozuk/eşit değil" görünür.
-    // Bunun yerine kanvası (hücreBoyutu * blokSayısı) olacak şekilde yeniden boyutlandırıp
-    // her hücreyi aynı tam sayı boyutunda çiziyoruz.
-    function calculateCellSize(cols, rows) {
-        const maxDimension = 600; // hedeflenen maksimum kanvas boyutu
-        const cellSize = Math.floor(Math.min(maxDimension / cols, maxDimension / rows));
+
+    // kullanılacak hücre boyutunu hesaplar. Artık sabit 600px yerine kullanıcının
+
+    // "Output Image Width (px)" alanına girdiği değeri kullanıyoruz (Paint'teki genişlik
+
+    // ayarı gibi). Yükseklik, blok sayısı oranına göre otomatik olarak orantılı çıkar.
+
+    function calculateCellSize(cols) {
+
+        const outputWidthPx = parseInt(outputWidthInput.value) || 600;
+
+        const cellSize = Math.floor(outputWidthPx / cols);
+
         return Math.max(cellSize, 1);
+
     }
 
+
+
     const blockTooltip = document.createElement('div');
+
     blockTooltip.style.position = 'fixed'; /* absolute yerine fixed kullandık */
+
     blockTooltip.style.top = '20px';       /* Ekranın üstünden 20px boşluk */
+
     blockTooltip.style.right = '20px';     /* Ekranın sağından 20px boşluk */
+
     blockTooltip.style.display = 'none';
+
     blockTooltip.style.backgroundColor = '#2a2a40';
+
     blockTooltip.style.color = '#b3b3cc';
+
     blockTooltip.style.padding = '10px 15px';
+
     blockTooltip.style.border = '2px solid #4CAF50';
+
     blockTooltip.style.borderRadius = '8px';
+
     blockTooltip.style.boxShadow = '0 6px 15px rgba(0,0,0,0.6)';
+
     blockTooltip.style.pointerEvents = 'none';
+
     blockTooltip.style.zIndex = '1000';
+
     blockTooltip.style.fontSize = '13px';
+
     document.body.appendChild(blockTooltip);
+
     let tooltipTimeout;
 
+
+
     modeSelect.addEventListener('change', function() {
+
         if (this.value === "inspect") {
+
             generatorArea.classList.add('hidden');
+
             inspectorArea.classList.remove('hidden');
+
             ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+
             reportSection.style.display = 'none';
+
         } else {
+
             generatorArea.classList.remove('hidden');
+
             inspectorArea.classList.add('hidden');
+
             if (this.value === "auto") {
+
                 blockUploadGroup.style.display = 'none';
+
             } else {
+
                 blockUploadGroup.style.display = 'block';
+
             }
+
         }
+
     });
+
+
 
     imageInput.addEventListener('change', function(e) {
+
         const file = e.target.files[0];
+
         if (!file) return;
+
         const reader = new FileReader();
+
         reader.onload = function(event) { uploadedImage.src = event.target.result; };
+
         reader.readAsDataURL(file);
+
     });
 
+
+
     blockInput.addEventListener('change', function(e) {
+
         const files = e.target.files;
+
         if (files.length === 0) return;
 
+
+
         blockPreview.innerHTML = '';
+
         customBlocks = [];
 
+
+
         Array.from(files).forEach(file => {
+
             const reader = new FileReader();
+
             reader.onload = function(event) {
+
                 const img = new Image();
+
                 img.onload = function() {
+
                     const tempCanvas = document.createElement('canvas');
+
                     tempCanvas.width = 1;
+
                     tempCanvas.height = 1;
+
                     const tempCtx = tempCanvas.getContext('2d');
+
                     tempCtx.drawImage(img, 0, 0, 1, 1);
+
                     const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
+
                     
+
                     const cleanName = file.name.split('.').slice(0, -1).join('.');
 
+
+
                     const blockObj = {
+
                         image: img,
+
                         src: event.target.result, 
+
                         rgb: [pixelData[0], pixelData[1], pixelData[2]],
+
                         name: cleanName,
+
                         count: 0 
+
                     };
+
+
 
                     customBlocks.push(blockObj);
 
+
+
                     const wrapper = document.createElement('div');
+
                     wrapper.className = 'block-wrapper';
 
+
+
                     const thumb = document.createElement('img');
+
                     thumb.src = img.src;
+
                     thumb.className = 'block-thumb';
+
                     thumb.title = cleanName;
 
+
+
                     const removeBtn = document.createElement('div');
+
                     removeBtn.className = 'remove-btn';
+
                     removeBtn.innerHTML = '&times;';
+
                     removeBtn.title = "Remove block";
+
                     
+
                     removeBtn.addEventListener('click', function() {
+
                         const index = customBlocks.indexOf(blockObj);
+
                         if (index > -1) {
+
                             customBlocks.splice(index, 1);
+
                         }
+
                         wrapper.remove();
 
+
+
                         if (customBlocks.length === 0) {
+
                             blockPreview.innerHTML = '<span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>';
+
                         }
+
                     });
 
+
+
                     wrapper.appendChild(thumb);
+
                     wrapper.appendChild(removeBtn);
+
                     blockPreview.appendChild(wrapper);
+
                 };
+
                 img.src = event.target.result;
+
             };
+
             reader.readAsDataURL(file);
+
         });
+
     });
+
+
 
     function getClosestBlock(r, g, b) {
+
         let minDistance = Infinity;
+
         let closestBlock = null;
 
+
+
         for (let block of customBlocks) {
+
             let distance = Math.sqrt(
+
                 Math.pow(r - block.rgb[0], 2) +
+
                 Math.pow(g - block.rgb[1], 2) +
+
                 Math.pow(b - block.rgb[2], 2)
+
             );
 
+
+
             if (distance < minDistance) {
+
                 minDistance = distance;
+
                 closestBlock = block;
+
             }
+
         }
+
         return closestBlock;
+
     }
+
+
 
     generateBtn.addEventListener('click', function() {
+
         if (!uploadedImage.src) {
+
             alert("Please upload a main image first!");
+
             return;
+
         }
+
+
 
         const targetW = parseInt(pixelWidthInput.value);
+
         const targetH = parseInt(pixelHeightInput.value);
+
         const mode = modeSelect.value;
 
+
+
         blockMap = [];
+
         sonProjeVerisi = null; 
 
+
+
         if (mode === "auto") {
+
             reportSection.style.display = 'none'; 
+
             generateAutoPixelArt(targetW, targetH);
+
         } else if (mode === "blocks") {
+
             if (customBlocks.length === 0) {
+
                 alert("Error: To generate with blocks, you must first upload block images in 'Option 2'!");
+
                 return;
+
             }
+
             generateCustomBlockArt(targetW, targetH);
+
         }
+
     });
+
+
 
     saveBtn.addEventListener('click', function() {
+
         if (blockMap.length === 0 && modeSelect.value === "blocks") {
+
             alert("Please upload a main image and generate pixel art first!");
+
             return;
+
         }
+
         
+
         const dataURL = resultCanvas.toDataURL('image/png');
+
         const downloadLink = document.createElement('a');
+
         downloadLink.href = dataURL;
+
         downloadLink.download = `pixel-art-${Date.now()}.png`; 
+
         document.body.appendChild(downloadLink);
+
         downloadLink.click();
+
         document.body.removeChild(downloadLink);
+
     });
+
+
 
     saveJsonBtn.addEventListener('click', function() {
+
         if (!sonProjeVerisi || sonProjeVerisi.matrix.length === 0) {
+
             alert("To download a project file, you must first generate Pixel Art using Option 2!");
+
             return;
+
         }
+
         
+
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sonProjeVerisi));
+
         const downloadAnchor = document.createElement('a');
+
         downloadAnchor.setAttribute("href", dataStr);
+
         downloadAnchor.setAttribute("download", `pixel-project-${Date.now()}.json`);
+
         document.body.appendChild(downloadAnchor);
+
         downloadAnchor.click();
+
         downloadAnchor.remove();
+
     });
 
+
+
     function generateAutoPixelArt(targetW, targetH) {
-        // Blok modundan geçişte kanvas boyutu değişmiş olabilir, varsayılana döndürüyoruz.
-        resultCanvas.width = 600;
-        resultCanvas.height = 600;
+
+        // Kanvas boyutunu artık kullanıcının girdiği "Output Image Width" değerine göre
+
+        // ayarlıyoruz; yükseklik, blok oranını (targetW:targetH) koruyacak şekilde
+
+        // otomatik hesaplanıyor (Paint'te sadece genişliği girip en-boy oranını koru
+
+        // seçeneğini işaretlemek gibi).
+
+        const outputWidthPx = parseInt(outputWidthInput.value) || 600;
+
+        resultCanvas.width = outputWidthPx;
+
+        resultCanvas.height = Math.round(outputWidthPx * (targetH / targetW));
+
+
 
         const offScreenCanvas = document.createElement('canvas');
+
         offScreenCanvas.width = targetW;
+
         offScreenCanvas.height = targetH;
+
         const offCtx = offScreenCanvas.getContext('2d');
+
         
+
         offCtx.drawImage(uploadedImage, 0, 0, targetW, targetH);
+
         
+
         ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+
         ctx.imageSmoothingEnabled = false;
+
         ctx.drawImage(offScreenCanvas, 0, 0, targetW, targetH, 0, 0, resultCanvas.width, resultCanvas.height);
+
     }
 
+
+
     function generateCustomBlockArt(targetW, targetH) {
+
         const offScreenCanvas = document.createElement('canvas');
+
         offScreenCanvas.width = targetW;
+
         offScreenCanvas.height = targetH;
+
         const offCtx = offScreenCanvas.getContext('2d');
+
         offCtx.drawImage(uploadedImage, 0, 0, targetW, targetH);
+
         
+
         const imageData = offCtx.getImageData(0, 0, targetW, targetH);
+
         const data = imageData.data;
 
+
+
         // Kanvası, her hücrenin tam sayı ve birebir eşit piksel boyutunda olacağı
+
         // şekilde yeniden boyutlandırıyoruz (hücre boyutu * sütun/satır sayısı).
-        const cellSize = calculateCellSize(targetW, targetH);
+
+        // Hücre boyutu, kullanıcının girdiği çıktı genişliğine göre hesaplanıyor.
+
+        const cellSize = calculateCellSize(targetW);
+
         resultCanvas.width = cellSize * targetW;
+
         resultCanvas.height = cellSize * targetH;
 
+
+
         ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+
         ctx.imageSmoothingEnabled = false;
 
+        ctx.mozImageSmoothingEnabled = false;
+
+        ctx.webkitImageSmoothingEnabled = false;
+
+        ctx.msImageSmoothingEnabled = false;
+
+
+
         const blockGridW = cellSize;
+
         const blockGridH = cellSize;
 
+
+
         currentGridW = blockGridW;
+
         currentGridH = blockGridH;
+
         targetCols = targetW;
+
         targetRows = targetH;
 
+
+
         const jitterAmount = 30; 
+
         
+
         let flatMatrix = [];
+
+
 
         customBlocks.forEach(b => b.count = 0);
 
+
+
         let pixelIndex = 0;
+
         for (let y = 0; y < targetH; y++) {
+
             blockMap[y] = []; 
 
+
+
             for (let x = 0; x < targetW; x++) {
+
                 let r = data[pixelIndex];
+
                 let g = data[pixelIndex+1];
+
                 let b = data[pixelIndex+2];
+
                 let a = data[pixelIndex+3];
 
+
+
                 if (a > 10) {
+
                     let jitterR = (Math.random() * 2 - 1) * jitterAmount;
+
                     let jitterG = (Math.random() * 2 - 1) * jitterAmount;
+
                     let jitterB = (Math.random() * 2 - 1) * jitterAmount;
 
+
+
                     let finalR = Math.max(0, Math.min(255, r + jitterR));
+
                     let finalG = Math.max(0, Math.min(255, g + jitterG));
+
                     let finalB = Math.max(0, Math.min(255, b + jitterB));
 
+
+
                     let closest = getClosestBlock(finalR, finalG, finalB);
+
                     
+
                     if (closest) {
+
                         closest.count++;
+
                         
+
                         let blockInfo = {
+
                             name: closest.name,
+
                             src: closest.src
+
                         };
+
                         
+
                         blockMap[y][x] = blockInfo; 
+
                         
+
                         flatMatrix.push({
+
                             x: x,
+
                             y: y,
+
                             blockName: closest.name,
+
                             src: closest.src
+
                         });
 
+
+
                         const currentX = x * blockGridW;
+
                         const currentY = y * blockGridH;
 
-                        ctx.drawImage(closest.image, currentX, currentY, blockGridW, blockGridH);
+
+
+                        // Bitişik bloklar arasında ince açık renkli "dikiş" çizgisi kalmasın diye
+
+                        // her bloğu 1px taşırarak çiziyoruz. Döngü soldan sağa, yukarıdan aşağıya
+
+                        // ilerlediği için bir sonraki blok bu taşan kısmın üzerine çiziliyor ve
+
+                        // sızıntı/çizgi görünmüyor.
+
+                        const overlap = 1;
+
+                        ctx.drawImage(closest.image, currentX, currentY, blockGridW + overlap, blockGridH + overlap);
+
                     } else {
+
                         blockMap[y][x] = null;
+
                     }
+
                 } else {
+
                     blockMap[y][x] = null;
+
                 }
+
                 
+
                 pixelIndex += 4; 
+
             }
+
         }
+
+
 
         sonProjeVerisi = {
+
             width: targetW,
+
             height: targetH,
+
             matrix: flatMatrix
+
         };
+
+
 
         drawInventoryReport();
+
     }
+
+
 
     jsonUpload.addEventListener('change', function(e) {
+
         const file = e.target.files[0];
+
         if (!file) return;
 
+
+
         const reader = new FileReader();
+
         reader.onload = function(evt) {
+
             try {
+
                 const proje = JSON.parse(evt.target.result);
+
                 if(!proje.matrix || !proje.width || !proje.height) throw new Error();
+
                 
+
                 blockMap = [];
+
                 for(let i=0; i<proje.height; i++) blockMap[i] = [];
+
                 
+
                 targetCols = proje.width;
+
                 targetRows = proje.height;
 
-                const cellSize = calculateCellSize(targetCols, targetRows);
+
+
+                const cellSize = calculateCellSize(targetCols);
+
                 resultCanvas.width = cellSize * targetCols;
+
                 resultCanvas.height = cellSize * targetRows;
 
+
+
                 currentGridW = cellSize;
+
                 currentGridH = cellSize;
+
                 
+
                 ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+
                 ctx.imageSmoothingEnabled = false;
+
+                ctx.mozImageSmoothingEnabled = false;
+
+                ctx.webkitImageSmoothingEnabled = false;
+
+                ctx.msImageSmoothingEnabled = false;
+
                 
+
                 let objCountMap = {};
+
                 let loadedImages = 0;
+
                 
+
                 proje.matrix.forEach(pixel => {
+
                     blockMap[pixel.y][pixel.x] = { name: pixel.blockName };
+
                     
+
                     if(!objCountMap[pixel.blockName]) {
+
                         objCountMap[pixel.blockName] = { count: 0, src: pixel.src };
+
                     }
+
                     objCountMap[pixel.blockName].count++;
 
+
+
                     let tempImg = new Image();
+
                     tempImg.onload = function() {
+
                         const currentX = pixel.x * currentGridW;
+
                         const currentY = pixel.y * currentGridH;
-                        ctx.drawImage(tempImg, currentX, currentY, currentGridW, currentGridH);
+
+                        const overlap = 1;
+
+                        ctx.drawImage(tempImg, currentX, currentY, currentGridW + overlap, currentGridH + overlap);
+
                         
+
                         loadedImages++;
+
                         if(loadedImages === proje.matrix.length) {
+
                             raporuJsonDanOlustur(objCountMap);
+
                         }
+
                     };
+
                     tempImg.src = pixel.src;
+
                 });
+
                 
+
             } catch (error) {
+
                 alert("Invalid or corrupted project file!");
+
             }
+
         };
+
         reader.readAsText(file);
+
     });
+
+
 
     function raporuJsonDanOlustur(objCountMap) {
+
         reportContainer.innerHTML = ''; 
+
         
+
         let sortedBlocks = Object.entries(objCountMap).sort((a, b) => b[1].count - a[1].count);
+
         
+
         sortedBlocks.forEach(item => {
+
             const blockName = item[0];
+
             const data = item[1];
+
             
+
             const card = document.createElement('div');
+
             card.className = 'report-item';
 
+
+
             const img = document.createElement('img');
+
             img.src = data.src;
 
+
+
             const name = document.createElement('div');
+
             name.className = 'report-item-name';
+
             name.innerText = blockName;
+
             name.title = blockName; 
 
+
+
             const count = document.createElement('div');
+
             count.className = 'report-item-count';
+
             count.innerText = `${data.count}x`;
 
+
+
             card.appendChild(img);
+
             card.appendChild(name);
+
             card.appendChild(count);
+
             reportContainer.appendChild(card);
+
         });
+
         reportSection.style.display = 'block';
+
     }
+
+
 
     resultCanvas.addEventListener('click', function(e) {
+
         if (modeSelect.value === "auto" || blockMap.length === 0) return;
 
+
+
         const rect = resultCanvas.getBoundingClientRect();
+
         
+
         const scaleX = resultCanvas.width / rect.width;
+
         const scaleY = resultCanvas.height / rect.height;
 
+
+
         const mouseX = (e.clientX - rect.left) * scaleX;
+
         const mouseY = (e.clientY - rect.top) * scaleY;
 
+
+
         const gridX = Math.floor(mouseX / currentGridW);
+
         const gridY = Math.floor(mouseY / currentGridH);
 
+
+
         if (gridY >= 0 && gridY < targetRows && gridX >= 0 && gridX < targetCols) {
+
             const block = blockMap[gridY][gridX];
+
             if (block) {
+
                 blockTooltip.innerHTML = `Used Block:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
+
                 blockTooltip.style.display = 'block';
+
                 
+
                 /* Fareyi takip etmemesi için pozisyon hesaplama satırlarını kaldırdık */
 
+
+
                 clearTimeout(tooltipTimeout);
+
                 tooltipTimeout = setTimeout(() => {
+
                     blockTooltip.style.display = 'none';
+
                 }, 3000);
+
             }
+
         }
+
     });
 
+
+
     function drawInventoryReport() {
+
         reportContainer.innerHTML = ''; 
 
+
+
         const usedBlocks = customBlocks
+
             .filter(b => b.count > 0)
+
             .sort((a, b) => b.count - a.count);
 
+
+
         usedBlocks.forEach(block => {
+
             const card = document.createElement('div');
+
             card.className = 'report-item';
 
+
+
             const img = document.createElement('img');
+
             img.src = block.image.src;
 
+
+
             const name = document.createElement('div');
+
             name.className = 'report-item-name';
+
             name.innerText = block.name;
+
             name.title = block.name; 
 
+
+
             const count = document.createElement('div');
+
             count.className = 'report-item-count';
+
             count.innerText = `${block.count}x`;
 
+
+
             card.appendChild(img);
+
             card.appendChild(name);
+
             card.appendChild(count);
+
             reportContainer.appendChild(card);
+
         });
 
+
+
         reportSection.style.display = 'block';
+
     }
+
 </script>
+
 </body>
+
 </html>
