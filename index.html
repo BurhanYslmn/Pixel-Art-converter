@@ -313,7 +313,9 @@
     let sonProjeVerisi = null;
 
     const blockTooltip = document.createElement('div');
-    blockTooltip.style.position = 'absolute';
+    blockTooltip.style.position = 'fixed'; /* absolute yerine fixed kullandık */
+    blockTooltip.style.top = '20px';       /* Ekranın üstünden 20px boşluk */
+    blockTooltip.style.right = '20px';     /* Ekranın sağından 20px boşluk */
     blockTooltip.style.display = 'none';
     blockTooltip.style.backgroundColor = '#2a2a40';
     blockTooltip.style.color = '#b3b3cc';
@@ -706,8 +708,8 @@
             if (block) {
                 blockTooltip.innerHTML = `Used Block:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
                 blockTooltip.style.display = 'block';
-                blockTooltip.style.left = (e.pageX + 15) + 'px';
-                blockTooltip.style.top = (e.pageY + 15) + 'px';
+                
+                /* Fareyi takip etmemesi için pozisyon hesaplama satırlarını kaldırdık */
 
                 clearTimeout(tooltipTimeout);
                 tooltipTimeout = setTimeout(() => {
