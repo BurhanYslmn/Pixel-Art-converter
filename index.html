@@ -312,6 +312,18 @@
     let targetRows = 0;
     let sonProjeVerisi = null;
 
+    // Her blok/piksel hücresinin TAM olarak aynı piksel boyutunda çizilmesini sağlamak için
+    // kullanılacak hücre boyutunu hesaplar. Sabit 600x600 kanvasa bölme yaparsak
+    // (örn. 600/45 = 13.33px) küsuratlı sonuç çıkar ve Math.floor ile yuvarlanınca
+    // bazı bloklar 13px bazıları 14px olur -> bloklar "bozuk/eşit değil" görünür.
+    // Bunun yerine kanvası (hücreBoyutu * blokSayısı) olacak şekilde yeniden boyutlandırıp
+    // her hücreyi aynı tam sayı boyutunda çiziyoruz.
+    function calculateCellSize(cols, rows) {
+        const maxDimension = 600; // hedeflenen maksimum kanvas boyutu
+        const cellSize = Math.floor(Math.min(maxDimension / cols, maxDimension / rows));
+        return Math.max(cellSize, 1);
+    }
+
     const blockTooltip = document.createElement('div');
     blockTooltip.style.position = 'fixed'; /* absolute yerine fixed kullandık */
     blockTooltip.style.top = '20px';       /* Ekranın üstünden 20px boşluk */
@@ -495,6 +507,10 @@
     });
 
     function generateAutoPixelArt(targetW, targetH) {
+        // Blok modundan geçişte kanvas boyutu değişmiş olabilir, varsayılana döndürüyoruz.
+        resultCanvas.width = 600;
+        resultCanvas.height = 600;
+
         const offScreenCanvas = document.createElement('canvas');
         offScreenCanvas.width = targetW;
         offScreenCanvas.height = targetH;
@@ -517,11 +533,17 @@
         const imageData = offCtx.getImageData(0, 0, targetW, targetH);
         const data = imageData.data;
 
+        // Kanvası, her hücrenin tam sayı ve birebir eşit piksel boyutunda olacağı
+        // şekilde yeniden boyutlandırıyoruz (hücre boyutu * sütun/satır sayısı).
+        const cellSize = calculateCellSize(targetW, targetH);
+        resultCanvas.width = cellSize * targetW;
+        resultCanvas.height = cellSize * targetH;
+
         ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
         ctx.imageSmoothingEnabled = false;
 
-        const blockGridW = resultCanvas.width / targetW;
-        const blockGridH = resultCanvas.height / targetH;
+        const blockGridW = cellSize;
+        const blockGridH = cellSize;
 
         currentGridW = blockGridW;
         currentGridH = blockGridH;
@@ -572,15 +594,10 @@
                             src: closest.src
                         });
 
-                        let currentX = Math.floor(x * blockGridW);
-                        let currentY = Math.floor(y * blockGridH);
-                        let nextX = Math.floor((x + 1) * blockGridW);
-                        let nextY = Math.floor((y + 1) * blockGridH);
-                        
-                        let drawW = nextX - currentX;
-                        let drawH = nextY - currentY;
+                        const currentX = x * blockGridW;
+                        const currentY = y * blockGridH;
 
-                        ctx.drawImage(closest.image, currentX, currentY, drawW, drawH);
+                        ctx.drawImage(closest.image, currentX, currentY, blockGridW, blockGridH);
                     } else {
                         blockMap[y][x] = null;
                     }
@@ -616,9 +633,13 @@
                 
                 targetCols = proje.width;
                 targetRows = proje.height;
-                
-                currentGridW = resultCanvas.width / targetCols;
-                currentGridH = resultCanvas.height / targetRows;
+
+                const cellSize = calculateCellSize(targetCols, targetRows);
+                resultCanvas.width = cellSize * targetCols;
+                resultCanvas.height = cellSize * targetRows;
+
+                currentGridW = cellSize;
+                currentGridH = cellSize;
                 
                 ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
                 ctx.imageSmoothingEnabled = false;
@@ -636,11 +657,9 @@
 
                     let tempImg = new Image();
                     tempImg.onload = function() {
-                        let currentX = Math.floor(pixel.x * currentGridW);
-                        let currentY = Math.floor(pixel.y * currentGridH);
-                        let nextX = Math.floor((pixel.x + 1) * currentGridW);
-                        let nextY = Math.floor((pixel.y + 1) * currentGridH);
-                        ctx.drawImage(tempImg, currentX, currentY, nextX - currentX, nextY - currentY);
+                        const currentX = pixel.x * currentGridW;
+                        const currentY = pixel.y * currentGridH;
+                        ctx.drawImage(tempImg, currentX, currentY, currentGridW, currentGridH);
                         
                         loadedImages++;
                         if(loadedImages === proje.matrix.length) {
