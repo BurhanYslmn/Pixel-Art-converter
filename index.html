@@ -72,6 +72,11 @@
             user-select: none;
         }
         .tool-btn:hover { background-color: #4a4a6a; }
+        .tool-btn.disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
         .tool-btn.selected-brush { 
             border-color: #00d2ff; 
             box-shadow: 0 0 8px rgba(0, 210, 255, 0.5); 
@@ -207,8 +212,353 @@
             flex-shrink: 0;
         }
 
+        .world-designer {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .world-designer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #1e1e2f;
+            border: 1px solid #3f3f5a;
+            border-radius: 8px;
+            color: #b3b3cc;
+            font-weight: bold;
+        }
+
+        .fullscreen-btn {
+            width: auto;
+            min-width: 130px;
+            margin: 0;
+            padding: 9px 12px;
+            background: #008CBA;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .fullscreen-btn:hover { background: #007399; }
+
+        .canvas-viewport {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 6px;
+            overscroll-behavior: contain;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .canvas-viewport::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .canvas-viewport.panning {
+            cursor: grabbing;
+            user-select: none;
+        }
+
+        .fullscreen-block-panel,
+        .fullscreen-block-panel-toggle {
+            display: none;
+        }
+
+        .fullscreen-block-panel {
+            background: #2a2a40;
+            border: 1px solid #3f3f5a;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+            color: #fff;
+            gap: 8px;
+            padding: 12px;
+            z-index: 10000;
+            transition: transform 0.2s ease;
+        }
+
+        .fullscreen-block-panel.collapsed {
+            transform: translateX(calc(100% + 16px));
+        }
+
+        .fullscreen-block-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid #3f3f5a;
+            padding-bottom: 8px;
+        }
+
+        .fullscreen-block-panel-head strong {
+            color: #4CAF50;
+            font-size: 14px;
+        }
+
+        .panel-mini-btn {
+            width: auto;
+            min-width: 0;
+            margin: 0;
+            padding: 7px 10px;
+            background: #3f3f5a;
+            font-size: 12px;
+        }
+        .panel-mini-btn:hover { background: #4a4a6a; }
+
+        .fullscreen-block-categories {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .fullscreen-category-tab {
+            width: 100%;
+            min-width: 0;
+            height: 32px;
+            margin: 0;
+            padding: 6px 5px;
+            border: 1px solid #3f3f5a;
+            border-radius: 6px;
+            background: #1e1e2f;
+            color: #b3b3cc;
+            font-size: 11px;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-category-tab.active {
+            border-color: #00d2ff;
+            color: #fff;
+            background: #008CBA;
+            box-shadow: 0 0 7px rgba(0, 210, 255, 0.4);
+        }
+
+        .fullscreen-block-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 42px);
+            grid-auto-rows: 42px;
+            gap: 7px;
+            justify-content: center;
+            align-content: start;
+            min-height: 189px;
+        }
+
+        .fullscreen-block-item {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            margin: 0;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            background: #1e1e2f;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .fullscreen-block-item img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .fullscreen-block-item.selected-brush {
+            border-color: #00d2ff;
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.65);
+        }
+
+        .fullscreen-block-empty {
+            grid-column: 1 / -1;
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            align-self: center;
+        }
+
+        .fullscreen-block-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: #b3b3cc;
+            font-size: 12px;
+        }
+
+        .fullscreen-block-pagination button {
+            width: 42px;
+            margin: 0;
+            padding: 8px 0;
+            background: #008CBA;
+            font-size: 14px;
+        }
+
+        .fullscreen-block-pagination button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
         .hidden { display: none !important; }
         .help-text { color:#888; font-size:12px; margin-top:5px; display:block; }
+
+        html.planner-fullscreen-root,
+        body.planner-fullscreen {
+            overflow: hidden;
+        }
+
+        body.planner-fullscreen {
+            --fullscreen-block-panel-width: 286px;
+            padding: 0;
+        }
+
+        body.planner-fullscreen .main-wrapper {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            gap: 10px;
+            padding: 10px;
+            align-items: stretch;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        body.planner-fullscreen .planner-sidebar {
+            display: flex !important;
+            position: relative;
+            top: 0;
+            left: 0;
+            width: clamp(105px, 12vw, 170px);
+            max-width: 170px;
+            height: calc(100vh - 20px);
+            max-height: none;
+            padding: clamp(8px, 1vw, 12px);
+            border-radius: 8px;
+            overflow-y: auto;
+        }
+
+        body.planner-fullscreen .planner-sidebar h3 {
+            font-size: clamp(11px, 1vw, 14px);
+        }
+
+        body.planner-fullscreen .tool-btn,
+        body.planner-fullscreen .stack-toggle {
+            font-size: clamp(10px, 1vw, 13px);
+            padding: 7px;
+        }
+
+        body.planner-fullscreen .container {
+            max-width: none;
+            height: calc(100vh - 20px);
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        body.planner-fullscreen .container > h2,
+        body.planner-fullscreen #generatorArea,
+        body.planner-fullscreen #inspectorArea,
+        body.planner-fullscreen #reportSection,
+        body.planner-fullscreen .footer {
+            display: none !important;
+        }
+
+        body.planner-fullscreen .world-designer {
+            flex: 1;
+            height: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        body.planner-fullscreen .world-designer-header {
+            display: flex !important;
+            margin: 0 0 10px 0;
+            flex-shrink: 0;
+        }
+
+        body.planner-fullscreen .canvas-viewport {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            background: #111827;
+            border: 1px solid #3f3f5a;
+            border-radius: 8px;
+            cursor: crosshair;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        body.planner-fullscreen .canvas-viewport::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .canvas-stage {
+            width: 100%;
+        }
+
+        body.planner-fullscreen .canvas-stage {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        body.planner-fullscreen .canvas-viewport.panning {
+            cursor: grabbing;
+        }
+
+        body.planner-fullscreen canvas {
+            max-width: none;
+            margin: 0;
+            border: 0;
+            flex: 0 0 auto;
+        }
+
+        body.planner-fullscreen .fullscreen-block-panel {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 66px;
+            right: 12px;
+            width: var(--fullscreen-block-panel-width);
+            max-width: calc(100vw - 30px);
+            max-height: calc(100% - 78px);
+        }
+
+        body.planner-fullscreen .fullscreen-block-panel-toggle {
+            display: block;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            z-index: 10001;
+            width: auto;
+            margin: 0;
+            padding: 10px 8px;
+            border-radius: 8px 0 0 8px;
+            background: #008CBA;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: translateY(-50%);
+            font-size: 12px;
+        }
+
+        body.planner-fullscreen .fullscreen-block-panel-toggle.panel-open {
+            display: none;
+        }
 
         @media (max-width: 960px) {
             body { padding: 10px; }
@@ -245,6 +595,7 @@
         <h3>🛠️ Tools</h3>
         <div class="tool-btn" id="sidebarEraser" title="Must erase existing blocks first">🧹 Eraser</div>
         <div class="tool-btn" id="sidebarPicker" title="Pick block from canvas">💧 Color Picker</div>
+        <div class="tool-btn disabled" id="sidebarUndo" title="Undo last planner action">↶ Undo</div>
         <label class="stack-toggle" title="Allow multiple blocks in the same cell">
             <input type="checkbox" id="allowStackingToggle">
             <span>Stack Blocks</span>
@@ -325,7 +676,32 @@
             </div>
         </div>
 
-        <canvas id="resultCanvas" width="600" height="600" title="Canvas area"></canvas>
+        <div id="worldDesigner" class="world-designer hidden">
+            <div id="worldDesignerHeader" class="world-designer-header hidden">
+                <span>World Designer</span>
+                <button type="button" id="fullscreenBtn" class="fullscreen-btn">⛶ Fullscreen</button>
+            </div>
+            <div id="canvasViewport" class="canvas-viewport">
+                <div id="canvasStage" class="canvas-stage">
+                    <canvas id="resultCanvas" width="600" height="600" title="Canvas area"></canvas>
+                </div>
+            </div>
+
+            <aside id="fullscreenBlockPanel" class="fullscreen-block-panel">
+                <div class="fullscreen-block-panel-head">
+                    <strong>Uploaded Blocks</strong>
+                    <button type="button" id="hideFullscreenBlockPanel" class="panel-mini-btn">Hide</button>
+                </div>
+                <div id="fullscreenBlockCategories" class="fullscreen-block-categories"></div>
+                <div id="fullscreenBlockGrid" class="fullscreen-block-grid"></div>
+                <div class="fullscreen-block-pagination">
+                    <button type="button" id="fullscreenBlockPrev">‹</button>
+                    <span id="fullscreenBlockPageInfo">1 / 1</span>
+                    <button type="button" id="fullscreenBlockNext">›</button>
+                </div>
+            </aside>
+            <button type="button" id="fullscreenBlockPanelToggle" class="fullscreen-block-panel-toggle">Blocks</button>
+        </div>
 
         <div class="report-section" id="reportSection">
             <h3 class="report-title">📦 Used Block List & Quantities</h3>
@@ -362,6 +738,19 @@
     const jsonUpload = document.getElementById('jsonUpload');
     
     // Alanlar
+    const worldDesigner = document.getElementById('worldDesigner');
+    const worldDesignerHeader = document.getElementById('worldDesignerHeader');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const canvasViewport = document.getElementById('canvasViewport');
+    const canvasStage = document.getElementById('canvasStage');
+    const fullscreenBlockPanel = document.getElementById('fullscreenBlockPanel');
+    const fullscreenBlockCategories = document.getElementById('fullscreenBlockCategories');
+    const fullscreenBlockGrid = document.getElementById('fullscreenBlockGrid');
+    const fullscreenBlockPrev = document.getElementById('fullscreenBlockPrev');
+    const fullscreenBlockNext = document.getElementById('fullscreenBlockNext');
+    const fullscreenBlockPageInfo = document.getElementById('fullscreenBlockPageInfo');
+    const fullscreenBlockPanelToggle = document.getElementById('fullscreenBlockPanelToggle');
+    const hideFullscreenBlockPanel = document.getElementById('hideFullscreenBlockPanel');
     const resultCanvas = document.getElementById('resultCanvas');
     const reportSection = document.getElementById('reportSection');
     const reportContainer = document.getElementById('reportContainer');
@@ -378,6 +767,7 @@
     const plannerBgInput = document.getElementById('plannerBgInput');
     const sidebarEraser = document.getElementById('sidebarEraser');
     const sidebarPicker = document.getElementById('sidebarPicker');
+    const sidebarUndo = document.getElementById('sidebarUndo');
     const sidebarPalette = document.getElementById('sidebarPalette');
     const emptyPaletteMsg = document.getElementById('emptyPaletteMsg');
     const allowStackingToggle = document.getElementById('allowStackingToggle');
@@ -400,11 +790,74 @@
     // Planner Değişkenleri
     let currentBrush = null; // Seçili blok objesini, 'eraser' veya 'picker' tutar
     let isPainting = false;
+    let pendingToggleDelete = null;
     let plannerBgImage = null;
+    let fullscreenBlockPage = 0;
+    let fullscreenBlockPanelHidden = false;
+    let isPanningCanvas = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let panStartScrollLeft = 0;
+    let panStartScrollTop = 0;
+    let fullscreenBlockCategory = 'all';
+    let canvasZoom = 1;
+    const undoStack = [];
+    const MAX_UNDO_STEPS = 150;
+    const CANVAS_MIN_ZOOM = 0.15;
+    const CANVAS_MAX_ZOOM = 8;
+    const TOGGLE_DELETE_MOVE_LIMIT = 4;
+    const FULLSCREEN_BLOCKS_PER_PAGE = 20;
+    const FULLSCREEN_BLOCK_CATEGORIES = [
+        { key: 'all', label: 'All' },
+        { key: 'blocks', label: 'Blocks' },
+        { key: 'backgrounds', label: 'BG' },
+        { key: 'props', label: 'Props' }
+    ];
 
     function getOutputWidth() {
         const value = parseInt(outputWidthInput.value, 10) || 600;
         return Math.max(16, Math.min(4096, value));
+    }
+
+    function resetWorldDesignerView() {
+        isPanningCanvas = false;
+        isPainting = false;
+        pendingToggleDelete = null;
+        canvasZoom = 1;
+        canvasViewport.classList.remove('panning');
+        resultCanvas.style.width = '';
+        resultCanvas.style.height = '';
+        canvasViewport.style.height = '';
+        canvasViewport.style.paddingRight = '';
+        canvasViewport.scrollLeft = 0;
+        canvasViewport.scrollTop = 0;
+        canvasStage.style.width = '';
+        canvasStage.style.height = '';
+        canvasStage.style.marginRight = '';
+    }
+
+    function clearCanvasOutput() {
+        cancelAnimationFrame(renderFrame);
+        canvasScene = 'empty';
+        targetCols = 0;
+        targetRows = 0;
+        blockMap = [];
+        sonProjeVerisi = null;
+        resetWorldDesignerView();
+        resultCanvas.width = 600;
+        resultCanvas.height = 600;
+        ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+    }
+
+    function showWorldDesigner(showHeader = false) {
+        worldDesigner.classList.remove('hidden');
+        worldDesignerHeader.classList.toggle('hidden', !showHeader);
+    }
+
+    function hideWorldDesigner() {
+        worldDesigner.classList.add('hidden');
+        worldDesignerHeader.classList.add('hidden');
+        clearCanvasOutput();
     }
 
     function setupCanvas(cols, rows) {
@@ -418,6 +871,7 @@
         currentGridW = resultCanvas.width / targetCols;
         currentGridH = resultCanvas.height / targetRows;
         ctx.imageSmoothingEnabled = false;
+        fitCanvasToViewport(false);
     }
 
     function getCellRect(x, y) {
@@ -455,8 +909,293 @@
         blockMap[y][x] = stack.length === 0 ? null : (stack.length === 1 ? stack[0] : stack);
     }
 
+    function cloneCellStack(cell) {
+        return getCellStack(cell).map(block => ({
+            name: block.name,
+            src: block.src,
+            image: block.image || getBlockImage(block)
+        }));
+    }
+
+    function updateUndoButton() {
+        sidebarUndo.classList.toggle('disabled', undoStack.length === 0);
+    }
+
+    function clearUndoHistory() {
+        undoStack.length = 0;
+        updateUndoButton();
+    }
+
+    function pushUndoState(x, y) {
+        undoStack.push({ x, y, stack: cloneCellStack(blockMap[y][x]) });
+        if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
+        updateUndoButton();
+    }
+
+    function recountPlannerBlockCounts() {
+        customBlocks.forEach(block => block.count = 0);
+        for (let y = 0; y < targetRows; y++) {
+            for (let x = 0; x < targetCols; x++) {
+                getCellStack(blockMap[y][x]).forEach(cellBlock => {
+                    const ref = customBlocks.find(block => block.name === cellBlock.name && block.src === cellBlock.src)
+                        || customBlocks.find(block => block.name === cellBlock.name);
+                    if (ref) ref.count++;
+                });
+            }
+        }
+    }
+
+    function undoLastPlannerAction() {
+        if (modeSelect.value !== 'planner' || undoStack.length === 0) return;
+        const last = undoStack.pop();
+        setCellStack(last.y, last.x, last.stack);
+        recountPlannerBlockCounts();
+        renderCurrentScene(false);
+        updateProjectDataAndReport();
+        updateUndoButton();
+    }
+
     function isStackingEnabled() {
         return modeSelect.value === 'planner' && allowStackingToggle.checked;
+    }
+
+    function blocksMatch(a, b) {
+        return !!a && !!b && a.name === b.name && a.src === b.src;
+    }
+
+    function getPendingToggleDeletePosition(e) {
+        if (modeSelect.value !== 'planner' || isStackingEnabled()) return null;
+        if (!currentBrush || typeof currentBrush !== 'object') return null;
+
+        const position = getGridPosition(e);
+        if (!position) return null;
+
+        const currentBlockData = getTopCellBlock(blockMap[position.y][position.x]);
+        if (!currentBlockData) return null;
+        return position;
+    }
+
+    function deleteTopBlockAt(gridX, gridY) {
+        const currentCell = blockMap[gridY][gridX];
+        const currentBlockData = getTopCellBlock(currentCell);
+        if (!currentBlockData) return;
+
+        pushUndoState(gridX, gridY);
+
+        const blockRef = customBlocks.find(block => block.name === currentBlockData.name && block.src === currentBlockData.src)
+            || customBlocks.find(block => block.name === currentBlockData.name);
+        if (blockRef && blockRef.count > 0) blockRef.count--;
+
+        const stack = getCellStack(currentCell);
+        stack.pop();
+        setCellStack(gridY, gridX, stack);
+        renderCurrentScene(false);
+        updateProjectDataAndReport();
+    }
+
+    function isPlannerFullscreen() {
+        return document.body.classList.contains('planner-fullscreen');
+    }
+
+    function getUploadCategory(fileName) {
+        const name = String(fileName || '').toLowerCase();
+        const backgroundWords = ['background', 'backgrounds', 'backdrop', 'wallpaper', 'sky', 'bg_', 'bg-', '_bg', '-bg'];
+        const propWords = ['prop', 'props', 'decor', 'deco', 'decoration', 'object', 'item', 'furniture', 'tree', 'plant', 'lamp', 'sign', 'door', 'window'];
+        const blockWords = ['block', 'blocks', 'tile', 'brick', 'stone', 'dirt', 'grass', 'wood', 'glass', 'wall', 'floor', 'platform', 'ore', 'sand'];
+
+        if (backgroundWords.some(word => name.includes(word))) return 'backgrounds';
+        if (propWords.some(word => name.includes(word))) return 'props';
+        if (blockWords.some(word => name.includes(word))) return 'blocks';
+        return 'blocks';
+    }
+
+    function getFilteredFullscreenBlocks() {
+        if (fullscreenBlockCategory === 'all') return customBlocks;
+        return customBlocks.filter(block => (block.category || 'blocks') === fullscreenBlockCategory);
+    }
+
+    function fitCanvasToViewport(centerAfterFit = false) {
+        if (!targetCols || !targetRows || modeSelect.value !== 'planner') {
+            resultCanvas.style.width = '';
+            resultCanvas.style.height = '';
+            canvasViewport.style.height = '';
+            canvasViewport.style.paddingRight = '';
+            canvasStage.style.width = '';
+            canvasStage.style.height = '';
+            canvasStage.style.marginRight = '';
+            return;
+        }
+
+        if (!isPlannerFullscreen()) {
+            if (canvasZoom === 1) {
+                resultCanvas.style.width = '';
+                resultCanvas.style.height = '';
+                canvasViewport.style.height = '';
+                canvasViewport.style.paddingRight = '';
+                canvasStage.style.width = '';
+                canvasStage.style.height = '';
+                canvasStage.style.marginRight = '';
+                return;
+            }
+
+            const baseW = Math.max(1, resultCanvas.width);
+            const baseH = Math.max(1, resultCanvas.height);
+            const availableW = Math.max(1, canvasViewport.clientWidth);
+            const baseScale = Math.min(1, availableW / baseW);
+            const normalW = Math.round(baseW * baseScale);
+            const normalH = Math.round(baseH * baseScale);
+            const displayW = Math.round(normalW * canvasZoom);
+            const displayH = Math.round(normalH * canvasZoom);
+            const topMargin = 20;
+            const viewportH = normalH + topMargin;
+
+            resultCanvas.style.width = `${displayW}px`;
+            resultCanvas.style.height = `${displayH}px`;
+            canvasViewport.style.height = `${viewportH}px`;
+            canvasViewport.style.paddingRight = '0px';
+            canvasStage.style.width = `${Math.max(availableW, displayW)}px`;
+            canvasStage.style.height = `${Math.max(viewportH, displayH + topMargin)}px`;
+            canvasStage.style.marginRight = '0px';
+            return;
+        }
+
+        canvasViewport.style.height = '';
+        const panelWidth = fullscreenBlockPanelHidden ? 0 : (fullscreenBlockPanel.getBoundingClientRect().width || 286) + 24;
+        const availableW = Math.max(160, canvasViewport.clientWidth - panelWidth - 6);
+        const availableH = Math.max(160, canvasViewport.clientHeight - 6);
+        const baseW = Math.max(1, resultCanvas.width);
+        const baseH = Math.max(1, resultCanvas.height);
+        const fitScale = Math.min(availableW / baseW, availableH / baseH);
+        const baseScale = Math.max(1, fitScale);
+        const scale = Math.max(CANVAS_MIN_ZOOM, Math.min(CANVAS_MAX_ZOOM, baseScale * canvasZoom));
+        const displayW = Math.round(baseW * scale);
+        const displayH = Math.round(baseH * scale);
+
+        resultCanvas.style.width = `${displayW}px`;
+        resultCanvas.style.height = `${displayH}px`;
+        canvasViewport.style.paddingRight = '0px';
+        canvasStage.style.width = `${Math.max(availableW, displayW)}px`;
+        canvasStage.style.height = `${Math.max(availableH, displayH)}px`;
+        canvasStage.style.marginRight = panelWidth ? `${panelWidth}px` : '0px';
+
+        if (centerAfterFit) {
+            requestAnimationFrame(() => {
+                canvasViewport.scrollLeft = Math.max(0, (canvasViewport.scrollWidth - canvasViewport.clientWidth) / 2);
+                canvasViewport.scrollTop = Math.max(0, (canvasViewport.scrollHeight - canvasViewport.clientHeight) / 2);
+            });
+        }
+    }
+
+    function syncFullscreenBlockPanelState() {
+        fullscreenBlockPanel.classList.toggle('collapsed', fullscreenBlockPanelHidden);
+        fullscreenBlockPanelToggle.classList.toggle('panel-open', !fullscreenBlockPanelHidden);
+        fullscreenBlockPanelToggle.textContent = 'Blocks';
+        fitCanvasToViewport(false);
+    }
+
+    function formatPanelCount(count) {
+        if (count >= 1000000) return `${(count / 1000000).toFixed(1)}m`;
+        if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
+        return String(count);
+    }
+
+    function renderFullscreenBlockCategories() {
+        fullscreenBlockCategories.innerHTML = '';
+
+        FULLSCREEN_BLOCK_CATEGORIES.forEach(category => {
+            const count = category.key === 'all'
+                ? customBlocks.length
+                : customBlocks.filter(block => (block.category || 'blocks') === category.key).length;
+
+            const tab = document.createElement('button');
+            tab.type = 'button';
+            tab.className = 'fullscreen-category-tab';
+            if (fullscreenBlockCategory === category.key) tab.classList.add('active');
+            tab.textContent = `${category.label} (${formatPanelCount(count)})`;
+            tab.title = `${category.label} (${count})`;
+            tab.addEventListener('click', () => {
+                fullscreenBlockCategory = category.key;
+                fullscreenBlockPage = 0;
+                renderFullscreenBlockPanel();
+            });
+            fullscreenBlockCategories.appendChild(tab);
+        });
+    }
+
+    function renderFullscreenBlockPanel() {
+        renderFullscreenBlockCategories();
+        fullscreenBlockGrid.innerHTML = '';
+
+        const visibleBlocks = getFilteredFullscreenBlocks();
+        const totalPages = Math.max(1, Math.ceil(visibleBlocks.length / FULLSCREEN_BLOCKS_PER_PAGE));
+        fullscreenBlockPage = Math.max(0, Math.min(fullscreenBlockPage, totalPages - 1));
+
+        const start = fullscreenBlockPage * FULLSCREEN_BLOCKS_PER_PAGE;
+        const pageBlocks = visibleBlocks.slice(start, start + FULLSCREEN_BLOCKS_PER_PAGE);
+
+        if (pageBlocks.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'fullscreen-block-empty';
+            empty.textContent = customBlocks.length === 0 ? 'No blocks uploaded.' : 'No items in this category.';
+            fullscreenBlockGrid.appendChild(empty);
+        } else {
+            pageBlocks.forEach(block => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'fullscreen-block-item';
+                item.title = block.name;
+                if (currentBrush && typeof currentBrush === 'object' && currentBrush.name === block.name && currentBrush.src === block.src) {
+                    item.classList.add('selected-brush');
+                }
+
+                const img = document.createElement('img');
+                img.src = block.image.src;
+                img.alt = block.name;
+
+                item.appendChild(img);
+                item.addEventListener('click', () => selectBrush(block, item));
+                fullscreenBlockGrid.appendChild(item);
+            });
+        }
+
+        fullscreenBlockPageInfo.textContent = `${fullscreenBlockPage + 1} / ${totalPages}`;
+        fullscreenBlockPrev.disabled = fullscreenBlockPage <= 0;
+        fullscreenBlockNext.disabled = fullscreenBlockPage >= totalPages - 1;
+    }
+
+    function updatePlannerFullscreenState() {
+        const active = !!document.fullscreenElement && modeSelect.value === 'planner';
+        document.body.classList.toggle('planner-fullscreen', active);
+        document.documentElement.classList.toggle('planner-fullscreen-root', active);
+        if (active) canvasZoom = 1;
+        fullscreenBtn.textContent = active ? '⛶ Exit Fullscreen' : '⛶ Fullscreen';
+        syncFullscreenBlockPanelState();
+        renderFullscreenBlockPanel();
+
+        if (active) {
+            setTimeout(() => {
+                fitCanvasToViewport(true);
+                scheduleRender();
+            }, 80);
+        } else {
+            isPanningCanvas = false;
+            canvasZoom = 1;
+            canvasViewport.classList.remove('panning');
+            resultCanvas.style.width = '';
+            resultCanvas.style.height = '';
+            canvasViewport.style.height = '';
+            canvasViewport.style.paddingRight = '';
+            canvasViewport.scrollLeft = 0;
+            canvasViewport.scrollTop = 0;
+            canvasStage.style.width = '';
+            canvasStage.style.height = '';
+            canvasStage.style.marginRight = '';
+            document.documentElement.scrollLeft = 0;
+            document.body.scrollLeft = 0;
+            window.scrollTo({ left: 0, top: window.scrollY });
+            fitCanvasToViewport(false);
+            scheduleRender();
+        }
     }
 
     function getBlockImage(cell) {
@@ -556,6 +1295,7 @@
 
         setupCanvas(targetCols, targetRows);
         renderCurrentScene(false);
+        fitCanvasToViewport(false);
         scheduleRender();
     }
 
@@ -578,7 +1318,7 @@
 
     // Fırça ve Araç Seçimi Mantığı
     function clearBrushSelection() {
-        document.querySelectorAll('.block-thumb, .tool-btn, .palette-item').forEach(el => el.classList.remove('selected-brush'));
+        document.querySelectorAll('.block-thumb, .tool-btn, .palette-item, .fullscreen-block-item').forEach(el => el.classList.remove('selected-brush'));
     }
 
     function selectBrush(brushData, element) {
@@ -586,21 +1326,24 @@
         currentBrush = brushData;
 
         if (brushData && typeof brushData === 'object') {
-            document.querySelectorAll('.block-thumb, .palette-item').forEach(item => {
+            document.querySelectorAll('.block-thumb, .palette-item, .fullscreen-block-item').forEach(item => {
                 if (item.title === brushData.name) item.classList.add('selected-brush');
             });
         } else if (element) {
             element.classList.add('selected-brush');
         }
+        renderFullscreenBlockPanel();
     }
 
     sidebarEraser.addEventListener('click', () => { selectBrush('eraser', sidebarEraser); });
     sidebarPicker.addEventListener('click', () => { selectBrush('picker', sidebarPicker); });
+    sidebarUndo.addEventListener('click', undoLastPlannerAction);
 
     // Mod Değiştirme
     modeSelect.addEventListener('change', function() {
         const mode = this.value;
         mainWrapper.classList.toggle('planner-active', mode === 'planner');
+        if (mode !== 'planner' && document.fullscreenElement) document.exitFullscreen();
         generatorArea.classList.remove('hidden');
         inspectorArea.classList.add('hidden');
         blockUploadGroup.style.display = 'block';
@@ -610,19 +1353,20 @@
         plannerHelp.style.display = 'none';
         plannerSidebar.classList.add('hidden');
         plannerBgGroup.classList.add('hidden');
+        reportSection.style.display = 'none';
+
+        if (mode !== 'planner') {
+            clearUndoHistory();
+            hideWorldDesigner();
+        }
 
         if (mode === "inspect") {
             generatorArea.classList.add('hidden');
             inspectorArea.classList.remove('hidden');
-            canvasScene = 'empty';
-            targetCols = 0;
-            targetRows = 0;
-            blockMap = [];
-            ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-            reportSection.style.display = 'none';
         } else if (mode === "auto") {
             blockUploadGroup.style.display = 'none';
         } else if (mode === "planner") {
+            showWorldDesigner(true);
             mainImageGroup.style.display = 'none'; 
             generateBtn.classList.add('hidden');
             createGridBtn.classList.remove('hidden');
@@ -696,6 +1440,7 @@
                         src: event.target.result, 
                         rgb: [pixelData[0], pixelData[1], pixelData[2]],
                         name: cleanName,
+                        category: getUploadCategory(file.name || cleanName),
                         count: 0 
                     };
 
@@ -731,11 +1476,13 @@
                         }
                         if (customBlocks.length === 0) noBlockText.style.display = 'block';
                         drawInventoryReport(); // Paleti günceller
+                        renderFullscreenBlockPanel();
                     });
 
                     wrapper.appendChild(thumb);
                     wrapper.appendChild(removeBtn);
                     blockPreview.appendChild(wrapper);
+                    renderFullscreenBlockPanel();
                 };
                 img.src = event.target.result;
             };
@@ -762,7 +1509,8 @@
         const targetW = parseInt(pixelWidthInput.value);
         const targetH = parseInt(pixelHeightInput.value);
         const mode = modeSelect.value;
-        blockMap = []; sonProjeVerisi = null; 
+        blockMap = []; sonProjeVerisi = null;
+        clearUndoHistory();
 
         if (mode === "auto") {
             reportSection.style.display = 'none'; 
@@ -804,6 +1552,8 @@
     });
 
     function generateAutoPixelArt(targetW, targetH) {
+        showWorldDesigner(false);
+        resetWorldDesignerView();
         canvasScene = 'auto';
         setupCanvas(targetW, targetH);
 
@@ -819,6 +1569,8 @@
     }
 
     function generateCustomBlockArt(targetW, targetH) {
+        showWorldDesigner(false);
+        resetWorldDesignerView();
         const offScreenCanvas = document.createElement('canvas');
         offScreenCanvas.width = targetW;
         offScreenCanvas.height = targetH;
@@ -872,7 +1624,10 @@
     }
 
     function initPlannerGrid(targetW, targetH) {
+        showWorldDesigner(true);
         canvasScene = 'planner';
+        canvasZoom = 1;
+        clearUndoHistory();
         setupCanvas(targetW, targetH);
 
         blockMap = [];
@@ -890,23 +1645,59 @@
     }
 
     resultCanvas.addEventListener('mousedown', function(e) {
-        if (modeSelect.value !== 'planner') return;
+        if (modeSelect.value !== 'planner' || e.button !== 0) return;
 
         if (currentBrush === 'picker') {
             isPainting = false;
+            pendingToggleDelete = null;
             paintOnCanvas(e);
             return;
         }
 
+        const toggleDeletePosition = getPendingToggleDeletePosition(e);
+        if (toggleDeletePosition) {
+            pendingToggleDelete = {
+                x: toggleDeletePosition.x,
+                y: toggleDeletePosition.y,
+                clientX: e.clientX,
+                clientY: e.clientY
+            };
+            isPainting = false;
+            e.preventDefault();
+            return;
+        }
+
+        pendingToggleDelete = null;
         isPainting = true;
         paintOnCanvas(e);
     });
 
     resultCanvas.addEventListener('mousemove', function(e) {
+        if (pendingToggleDelete) {
+            const dx = Math.abs(e.clientX - pendingToggleDelete.clientX);
+            const dy = Math.abs(e.clientY - pendingToggleDelete.clientY);
+            if (dx > TOGGLE_DELETE_MOVE_LIMIT || dy > TOGGLE_DELETE_MOVE_LIMIT) pendingToggleDelete = null;
+            return;
+        }
+
         if (modeSelect.value === 'planner' && isPainting && currentBrush !== 'picker') paintOnCanvas(e);
     });
 
-    window.addEventListener('mouseup', () => { isPainting = false; });
+    window.addEventListener('mouseup', function(e) {
+        if (pendingToggleDelete && e.button === 0) {
+            const dx = Math.abs(e.clientX - pendingToggleDelete.clientX);
+            const dy = Math.abs(e.clientY - pendingToggleDelete.clientY);
+            const position = getGridPosition(e);
+
+            if (dx <= TOGGLE_DELETE_MOVE_LIMIT && dy <= TOGGLE_DELETE_MOVE_LIMIT && position && position.x === pendingToggleDelete.x && position.y === pendingToggleDelete.y) {
+                deleteTopBlockAt(pendingToggleDelete.x, pendingToggleDelete.y);
+            }
+
+            pendingToggleDelete = null;
+        }
+
+        isPainting = false;
+    });
 
     function paintOnCanvas(e) {
         if (!currentBrush) return;
@@ -922,6 +1713,7 @@
         if (currentBrush === 'eraser') {
             if (!currentBlockData) return;
 
+            pushUndoState(gridX, gridY);
             const blockRef = customBlocks.find(block => block.name === currentBlockData.name && block.src === currentBlockData.src)
                 || customBlocks.find(block => block.name === currentBlockData.name);
             if (blockRef && blockRef.count > 0) blockRef.count--;
@@ -947,6 +1739,7 @@
 
         if (currentBlockData && !isStackingEnabled()) return;
 
+        pushUndoState(gridX, gridY);
         const newBlock = {
             name: currentBrush.name,
             src: currentBrush.src,
@@ -1027,6 +1820,8 @@
                 const proje = JSON.parse(evt.target.result);
                 if (!proje.matrix || !proje.width || !proje.height) throw new Error();
 
+                showWorldDesigner(false);
+                resetWorldDesignerView();
                 canvasScene = 'inspect';
                 setupCanvas(proje.width, proje.height);
                 blockMap = Array.from({ length: targetRows }, () => Array(targetCols).fill(null));
@@ -1104,15 +1899,124 @@
     });
 
     window.addEventListener('resize', function() {
-        if (canvasScene === 'planner') scheduleRender();
+        if (canvasScene === 'planner') {
+            fitCanvasToViewport(false);
+            scheduleRender();
+        }
     });
 
     if ('ResizeObserver' in window) {
         const canvasResizeObserver = new ResizeObserver(() => {
-            if (canvasScene === 'planner') scheduleRender();
+            if (canvasScene === 'planner') {
+                fitCanvasToViewport(false);
+                scheduleRender();
+            }
         });
         canvasResizeObserver.observe(resultCanvas);
     }
+
+    fullscreenBtn.addEventListener('click', function() {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            document.documentElement.requestFullscreen();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', updatePlannerFullscreenState);
+
+    fullscreenBlockPrev.addEventListener('click', function() {
+        fullscreenBlockPage--;
+        renderFullscreenBlockPanel();
+    });
+
+    fullscreenBlockNext.addEventListener('click', function() {
+        fullscreenBlockPage++;
+        renderFullscreenBlockPanel();
+    });
+
+    hideFullscreenBlockPanel.addEventListener('click', function() {
+        fullscreenBlockPanelHidden = true;
+        syncFullscreenBlockPanelState();
+        fitCanvasToViewport(false);
+    });
+
+    fullscreenBlockPanelToggle.addEventListener('click', function() {
+        fullscreenBlockPanelHidden = !fullscreenBlockPanelHidden;
+        syncFullscreenBlockPanelState();
+        fitCanvasToViewport(false);
+    });
+
+    function zoomCanvasAtPoint(e) {
+        if (modeSelect.value !== 'planner' || canvasScene !== 'planner') return;
+
+        const canvasRect = resultCanvas.getBoundingClientRect();
+        if (!canvasRect.width || !canvasRect.height) return;
+
+        const relativeX = Math.max(0, Math.min(1, (e.clientX - canvasRect.left) / canvasRect.width));
+        const relativeY = Math.max(0, Math.min(1, (e.clientY - canvasRect.top) / canvasRect.height));
+        const oldZoom = canvasZoom;
+        const zoomFactor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+
+        canvasZoom = Math.max(CANVAS_MIN_ZOOM, Math.min(CANVAS_MAX_ZOOM, canvasZoom * zoomFactor));
+        if (canvasZoom === oldZoom) return;
+
+        fitCanvasToViewport(false);
+
+        requestAnimationFrame(() => {
+            const viewportRect = canvasViewport.getBoundingClientRect();
+            const nextCanvasRect = resultCanvas.getBoundingClientRect();
+            const pointerX = e.clientX - viewportRect.left;
+            const pointerY = e.clientY - viewportRect.top;
+            const targetX = (nextCanvasRect.left - viewportRect.left) + (relativeX * nextCanvasRect.width);
+            const targetY = (nextCanvasRect.top - viewportRect.top) + (relativeY * nextCanvasRect.height);
+
+            canvasViewport.scrollLeft += targetX - pointerX;
+            canvasViewport.scrollTop += targetY - pointerY;
+            scheduleRender();
+        });
+    }
+
+    canvasViewport.addEventListener('wheel', function(e) {
+        if (modeSelect.value !== 'planner' || canvasScene !== 'planner') return;
+        e.preventDefault();
+        zoomCanvasAtPoint(e);
+    }, { passive: false });
+
+    canvasViewport.addEventListener('contextmenu', function(e) {
+        if (modeSelect.value === 'planner') e.preventDefault();
+    });
+
+    canvasViewport.addEventListener('mousedown', function(e) {
+        if (modeSelect.value !== 'planner' || e.button !== 2) return;
+
+        isPanningCanvas = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panStartScrollLeft = canvasViewport.scrollLeft;
+        panStartScrollTop = canvasViewport.scrollTop;
+        canvasViewport.classList.add('panning');
+        e.preventDefault();
+        e.stopPropagation();
+    }, true);
+
+    window.addEventListener('mousemove', function(e) {
+        if (!isPanningCanvas) return;
+
+        canvasViewport.scrollLeft = panStartScrollLeft - (e.clientX - panStartX);
+        canvasViewport.scrollTop = panStartScrollTop - (e.clientY - panStartY);
+        e.preventDefault();
+    });
+
+    window.addEventListener('mouseup', function(e) {
+        if (e.button !== 2 && e.button !== 0) return;
+        isPanningCanvas = false;
+        canvasViewport.classList.remove('panning');
+    });
+
+    syncFullscreenBlockPanelState();
+    renderFullscreenBlockPanel();
+    updateUndoButton();
 
     function drawInventoryReport() {
         reportContainer.innerHTML = ''; 
@@ -1134,6 +2038,7 @@
         
         // Ana envanter güncellendiğinde Sol Paleti de mutlaka güncelle!
         updateSidebarPalette();
+        renderFullscreenBlockPanel();
     }
 </script>
 </body>
