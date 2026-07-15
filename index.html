@@ -1,1595 +1,1140 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Pixel Art & Block Converter (v3.4)</title>
-
+    <title>Pixel Art & Block Converter (v5.0 World Designer)</title>
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body { max-width: 100%; }
 
         body {
-
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
             background-color: #1e1e2f;
-
             color: #fff;
-
-            padding: 20px;
-
+            padding: clamp(8px, 1.6vw, 20px);
             display: flex;
-
             justify-content: center;
-
+            margin: 0;
+            overflow-x: hidden;
         }
-
-        .container {
-
-            background-color: #2a2a40;
-
-            padding: 25px;
-
-            border-radius: 10px;
-
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-
-            width: 100%;
-
-            max-width: 600px;
-
-        }
-
-        h2 { text-align: center; margin-top: 0; color: #4CAF50; }
-
-        .form-group { margin-bottom: 20px; border-bottom: 1px solid #3f3f5a; padding-bottom: 15px; }
-
-        .form-group:last-of-type { border-bottom: none; }
-
-        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #b3b3cc; }
-
-        input[type="file"], input[type="number"], select {
-
-            width: 100%;
-
-            padding: 10px;
-
-            border: 1px solid #3f3f5a;
-
-            border-radius: 5px;
-
-            background-color: #1e1e2f;
-
-            color: #fff;
-
-            box-sizing: border-box;
-
-        }
-
-        button {
-
-            width: 100%;
-
-            padding: 14px;
-
-            background-color: #4CAF50;
-
-            color: white;
-
-            border: none;
-
-            border-radius: 5px;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-
-            transition: background 0.3s;
-
-            margin-top: 10px;
-
-        }
-
-        button:hover { background-color: #45a049; }
-
         
-
-        #saveBtn, #saveJsonBtn {
-
-            background-color: #008CBA;
-
-        }
-
-        #saveBtn:hover, #saveJsonBtn:hover {
-
-            background-color: #007399;
-
-        }
-
-        
-
-        .block-preview-container {
-
+        /* Yeni Ana Taşıyıcı: Sidebar ve İçeriği yan yana tutar */
+        .main-wrapper {
             display: flex;
-
-            gap: 12px;
-
-            flex-wrap: wrap;
-
-            margin-top: 10px;
-
-            background: #1e1e2f;
-
-            padding: 12px;
-
-            border-radius: 5px;
-
-            min-height: 50px;
-
-            max-height: 180px;
-
-            overflow-y: auto;
-
+            align-items: flex-start;
+            justify-content: center;
+            gap: clamp(8px, 2vw, 20px);
+            width: min(100%, 1000px);
+            max-width: 100%;
+            min-width: 0;
         }
 
+        /* --- SOL MENÜ (PLANNER SIDEBAR) STİLLERİ --- */
+        .planner-sidebar {
+            background-color: #2a2a40;
+            padding: clamp(8px, 1.6vw, 20px);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: clamp(120px, 18vw, 220px);
+            max-width: 100%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 1.2vw, 15px);
+            position: sticky;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .planner-sidebar h3 { 
+            margin: 0; 
+            color: #4CAF50; 
+            font-size: clamp(12px, 1.2vw, 16px); 
+            border-bottom: 1px solid #3f3f5a; 
+            padding-bottom: 5px;
+        }
+        .tool-btn {
+            background-color: #3f3f5a; 
+            color: white; 
+            padding: clamp(6px, 1vw, 10px); 
+            border-radius: 5px; 
+            text-align: center; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: clamp(11px, 1.2vw, 16px);
+            border: 2px solid transparent; 
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .tool-btn:hover { background-color: #4a4a6a; }
+        .tool-btn.selected-brush { 
+            border-color: #00d2ff; 
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.5); 
+            background-color: #1e1e2f; 
+        }
+        .sidebar-palette { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 8px; 
+        }
+        .sidebar-palette .palette-item {
+            width: clamp(26px, 3vw, 40px); 
+            height: clamp(26px, 3vw, 40px); 
+            border-radius: 4px; 
+            border: 2px solid transparent; 
+            cursor: pointer; 
+            object-fit: cover;
+            transition: transform 0.1s;
+        }
+        .sidebar-palette .palette-item:hover { transform: scale(1.1); }
+        .sidebar-palette .palette-item.selected-brush { 
+            border-color: #00d2ff; 
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.5); 
+        }
 
+        /* --- ANA KUTU STİLLERİ --- */
+        .container {
+            background-color: #2a2a40;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            max-width: 600px;
+        }
+        h2 { text-align: center; margin-top: 0; color: #4CAF50; }
+        .form-group { margin-bottom: 20px; border-bottom: 1px solid #3f3f5a; padding-bottom: 15px; }
+        .form-group:last-of-type { border-bottom: none; }
+        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #b3b3cc; }
+        input[type="file"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #3f3f5a;
+            border-radius: 5px;
+            background-color: #1e1e2f;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #45a049; }
+        
+        #saveBtn, #saveJsonBtn { background-color: #008CBA; }
+        #saveBtn:hover, #saveJsonBtn:hover { background-color: #007399; }
+        
+        .block-preview-container {
+            display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px;
+            background: #1e1e2f; padding: 12px; border-radius: 5px;
+            min-height: 50px; max-height: 180px; overflow-y: auto; align-items: center;
+        }
 
         .block-wrapper {
-
-            position: relative;
-
-            display: inline-block;
-
-            width: 44px;
-
-            height: 44px;
-
+            position: relative; display: inline-block; width: 44px; height: 44px; cursor: pointer;
         }
-
         .block-thumb {
-
-            width: 40px;
-
-            height: 40px;
-
-            border-radius: 4px;
-
-            border: 2px solid #4CAF50;
-
-            object-fit: cover;
-
-            display: block;
-
+            width: 40px; height: 40px; border-radius: 4px; border: 2px solid transparent; object-fit: cover; display: block; transition: border-color 0.2s;
         }
+        .block-thumb.selected-brush { border-color: #00d2ff !important; box-shadow: 0 0 10px rgba(0, 210, 255, 0.6); }
 
         .remove-btn {
-
-            position: absolute;
-
-            top: -5px;
-
-            right: -5px;
-
-            background-color: #ff4d4d;
-
-            color: white;
-
-            border-radius: 50%;
-
-            width: 16px;
-
-            height: 16px;
-
-            font-size: 11px;
-
-            font-weight: bold;
-
-            text-align: center;
-
-            line-height: 15px;
-
-            cursor: pointer;
-
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-
-            user-select: none;
-
-            transition: background 0.2s, transform 0.1s;
-
-            z-index: 10;
-
+            position: absolute; top: -5px; right: -5px; background-color: #ff4d4d; color: white; border-radius: 50%;
+            width: 16px; height: 16px; font-size: 11px; font-weight: bold; text-align: center; line-height: 15px;
+            cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.4); user-select: none; transition: background 0.2s, transform 0.1s; z-index: 10;
         }
-
-        .remove-btn:hover {
-
-            background-color: #ff1a1a;
-
-            transform: scale(1.1);
-
-        }
-
-
+        .remove-btn:hover { background-color: #ff1a1a; transform: scale(1.1); }
 
         canvas {
-
-            display: block;
-
-            margin: 20px auto 0;
-
-            background-color: #000;
-
-            border: 2px solid #3f3f5a;
-
-            image-rendering: pixelated; 
-
-            max-width: 100%;
-
-            cursor: crosshair;
-
+            display: block; margin: 20px auto 0; background-color: #000; border: 2px solid #3f3f5a;
+            image-rendering: pixelated; max-width: 100%; height: auto; cursor: crosshair; touch-action: none;
         }
-
-
 
         .report-section {
-
-            margin-top: 25px;
-
-            background-color: #1e1e2f;
-
-            padding: 15px;
-
-            border-radius: 8px;
-
-            border: 1px solid #3f3f5a;
-
-            display: none;
-
+            margin-top: 25px; background-color: #1e1e2f; padding: 15px; border-radius: 8px; border: 1px solid #3f3f5a; display: none;
         }
-
-        .report-title {
-
-            font-size: 16px;
-
-            color: #4CAF50;
-
-            margin-top: 0;
-
-            margin-bottom: 15px;
-
-            border-bottom: 1px solid #3f3f5a;
-
-            padding-bottom: 5px;
-
-        }
-
-        .report-grid {
-
-            display: grid;
-
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-
-            gap: 10px;
-
-        }
-
-        .report-item {
-
-            background-color: #2a2a40;
-
-            padding: 10px;
-
-            border-radius: 6px;
-
-            text-align: center;
-
-            border: 1px solid #3f3f5a;
-
-        }
-
-        .report-item img {
-
-            width: 45px;
-
-            height: 45px;
-
-            object-fit: cover;
-
-            border-radius: 4px;
-
-            border: 2px solid #4CAF50;
-
-        }
-
-        .report-item-name {
-
-            font-size: 11px;
-
-            color: #b3b3cc;
-
-            margin-top: 5px;
-
-            white-space: nowrap;
-
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-
-        }
-
-        .report-item-count {
-
-            font-size: 14px;
-
-            font-weight: bold;
-
-            color: #fff;
-
-            margin-top: 3px;
-
-        }
-
-
-
-        .footer {
-
-            margin-top: 30px;
-
-            text-align: center;
-
-            border-top: 1px solid #3f3f5a;
-
-            padding-top: 20px;
-
-        }
-
-        .footer p {
-
-            color: #b3b3cc;
-
-            font-size: 15px;
-
-            margin-bottom: 15px;
-
-        }
-
-        .social-links {
-
-            display: flex;
-
-            justify-content: center;
-
-            gap: 15px;
-
-        }
-
-        .social-btn {
-
-            padding: 10px 20px;
-
-            border-radius: 5px;
-
-            text-decoration: none;
-
-            color: white;
-
-            font-weight: bold;
-
-            font-size: 14px;
-
-            transition: opacity 0.3s, transform 0.2s;
-
-            display: inline-block;
-
-        }
-
-        .social-btn:hover {
-
-            opacity: 0.9;
-
-            transform: translateY(-2px);
-
-        }
-
-        .insta-btn {
-
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-
-        }
-
-        .dc-btn {
-
-            background-color: #5865F2;
-
-        }
-
-        .github-btn {
-
-            background-color: #333;
-
-        }
-
+        .report-title { font-size: 16px; color: #4CAF50; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #3f3f5a; padding-bottom: 5px; }
+        .report-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+        .report-item { background-color: #2a2a40; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #3f3f5a; }
+        .report-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 2px solid #4CAF50; }
+        .report-item-name { font-size: 11px; color: #b3b3cc; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .report-item-count { font-size: 14px; font-weight: bold; color: #fff; margin-top: 3px; }
+
+        .footer { margin-top: 30px; text-align: center; border-top: 1px solid #3f3f5a; padding-top: 20px; }
+        .footer p { color: #b3b3cc; font-size: 15px; margin-bottom: 15px; }
+        .social-links { display: flex; justify-content: center; gap: 15px; }
+        .social-btn { padding: 10px 20px; border-radius: 5px; text-decoration: none; color: white; font-weight: bold; font-size: 14px; transition: opacity 0.3s, transform 0.2s; display: inline-block; }
+        .social-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .insta-btn { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+        .dc-btn { background-color: #5865F2; }
+        .github-btn { background-color: #333; }
         
 
+        .stack-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #1e1e2f;
+            border: 1px solid #3f3f5a;
+            border-radius: 6px;
+            padding: clamp(6px, 1vw, 10px);
+            color: #b3b3cc;
+            cursor: pointer;
+            user-select: none;
+            font-size: clamp(11px, 1.1vw, 14px);
+            margin: 0;
+        }
+        .stack-toggle input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            accent-color: #00d2ff;
+            flex-shrink: 0;
+        }
+
         .hidden { display: none !important; }
+        .help-text { color:#888; font-size:12px; margin-top:5px; display:block; }
 
+        @media (max-width: 960px) {
+            body { padding: 10px; }
+            .main-wrapper { flex-direction: row; align-items: flex-start; }
+            .planner-sidebar {
+                width: clamp(105px, 25vw, 170px);
+                max-width: 28vw;
+                top: 10px;
+                left: 0;
+                max-height: calc(100vh - 20px);
+                flex-direction: column;
+                flex-wrap: nowrap;
+            }
+            .planner-sidebar > div { flex: initial; min-width: 0; }
+            .sidebar-palette { gap: 5px; }
+        }
+
+        @media (max-width: 520px) {
+            .planner-sidebar {
+                width: 96px;
+                max-width: 96px;
+            }
+            .planner-sidebar h3 { font-size: 11px; }
+            .tool-btn, .stack-toggle { font-size: 10px; }
+            .container { padding: 12px; }
+        }
     </style>
-
 </head>
-
 <body>
 
-
-
-<div class="container">
-
-    <h2>Pixel Art & Block Converter</h2>
-
-    
-
-    <div class="form-group">
-
-        <label>Select Operation Mode:</label>
-
-        <select id="modeSelect">
-
-            <option value="auto">Option 1: Automatic Pixel Art</option>
-
-            <option value="blocks" selected>Option 2: Create with Uploaded Blocks</option>
-
-            <option value="inspect">Option 3: Inspect Saved Project (.json)</option> 
-
-        </select>
-
+<div class="main-wrapper">
+    <!-- SOL MENÜ: Sadece Planner Modunda Görünür -->
+    <div id="plannerSidebar" class="planner-sidebar hidden">
+        <h3>🛠️ Tools</h3>
+        <div class="tool-btn" id="sidebarEraser" title="Must erase existing blocks first">🧹 Eraser</div>
+        <div class="tool-btn" id="sidebarPicker" title="Pick block from canvas">💧 Color Picker</div>
+        <label class="stack-toggle" title="Allow multiple blocks in the same cell">
+            <input type="checkbox" id="allowStackingToggle">
+            <span>Stack Blocks</span>
+        </label>
+        
+        <h3 style="margin-top: 10px;">🎨 Used Blocks</h3>
+        <div id="sidebarPalette" class="sidebar-palette">
+            <span style="color:#888; font-size: 12px;" id="emptyPaletteMsg">No blocks placed yet.</span>
+            <!-- Çizilen bloklar buraya otomatik düşecek -->
+        </div>
     </div>
 
-
-
-    <div id="generatorArea">
-
+    <!-- ANA İÇERİK KUTUSU -->
+    <div class="container">
+        <h2>Pixel Art & Block Converter</h2>
+        
         <div class="form-group">
-
-            <label>1. Upload Main Image to Convert:</label>
-
-            <input type="file" id="imageInput" accept="image/*">
-
+            <label>Select Operation Mode:</label>
+            <select id="modeSelect">
+                <option value="auto">Option 1: Automatic Pixel Art</option>
+                <option value="blocks" selected>Option 2: Create with Uploaded Blocks (Auto)</option>
+                <option value="planner">Option 3: Manual World Planner (Draw with Blocks)</option>
+                <option value="inspect">Option 4: Inspect Saved Project (.json)</option> 
+            </select>
         </div>
 
-
-
-        <div class="form-group" id="blockUploadGroup">
-
-            <label>2. Upload Block Images (You can select multiple):</label>
-
-            <input type="file" id="blockInput" accept="image/*" multiple>
-
-            <div class="block-preview-container" id="blockPreview">
-
-                <span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>
-
+        <div id="generatorArea">
+            <div class="form-group" id="mainImageGroup">
+                <label>1. Upload Main Image to Convert:</label>
+                <input type="file" id="imageInput" accept="image/*">
             </div>
 
-        </div>
-
-
-
-        <div class="form-group" style="display: flex; gap: 10px;">
-
-            <div style="flex: 1;">
-
-                <label>Width (Block Count):</label>
-
-                <input type="number" id="pixelWidth" value="50" min="8" max="128">
-
+            <div class="form-group" id="blockUploadGroup">
+                <label>2. Upload Block Images (Your Palette):</label>
+                <input type="file" id="blockInput" accept="image/*" multiple>
+                <span class="help-text" id="plannerHelp" style="display:none; color: #00d2ff;">Select a block below to start drawing! Use sidebar for tools.</span>
+                <div class="block-preview-container" id="blockPreview">
+                    <span id="noBlockText" style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>
+                </div>
             </div>
 
-            <div style="flex: 1;">
-
-                <label>Height (Block Count):</label>
-
-                <input type="number" id="pixelHeight" value="50" min="8" max="128">
-
+            <!-- ARKA PLAN RESMİ YÜKLEME (Sadece Planner Modu) -->
+            <div class="form-group hidden" id="plannerBgGroup">
+                <label style="color:#00d2ff;">3. Upload Background Ref. Image (Optional):</label>
+                <input type="file" id="plannerBgInput" accept="image/*">
+                <small class="help-text">Automatically adjusts the grid height to match your image ratio for perfect tracing!</small>
             </div>
 
+            <div class="form-group" style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>Width (Block Count):</label>
+                    <input type="number" id="pixelWidth" value="50" min="8" max="128">
+                </div>
+                <div style="flex: 1;">
+                    <label>Height (Block Count):</label>
+                    <input type="number" id="pixelHeight" value="50" min="8" max="128">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Output Image Width (px):</label>
+                <input type="number" id="outputWidthPx" value="600" min="16" max="4096" step="1">
+                <small class="help-text">Like in Paint: enter only the width — the height is calculated automatically.</small>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button id="generateBtn" style="flex: 2;">Generate Pixel Art</button>
+                <button id="createGridBtn" style="flex: 2;" class="hidden">Create Empty Grid</button>
+                <button id="saveBtn" style="flex: 1;">Save Image</button>
+                <button id="saveJsonBtn" style="flex: 1;">Save Project</button>
+            </div>
         </div>
 
-
-
-        <div class="form-group">
-
-            <label>Output Image Width (px):</label>
-
-            <input type="number" id="outputWidthPx" value="600" min="16" max="4096" step="1">
-
-            <small style="display:block; color:#888; margin-top:6px; font-size:12px; font-weight:normal;">
-
-                Like in Paint: enter only the width — the height is calculated automatically to keep the block grid's proportions.
-
-            </small>
-
+        <div id="inspectorArea" class="hidden">
+            <div class="form-group" style="border: 2px dashed #4CAF50; padding: 20px; text-align: center; border-radius: 8px; background: #222;">
+                <label style="color: #4CAF50; font-size: 16px; margin-bottom: 10px;">Load your previously saved project file (.json) to inspect pixels:</label>
+                <input type="file" id="jsonUpload" accept=".json">
+            </div>
         </div>
 
+        <canvas id="resultCanvas" width="600" height="600" title="Canvas area"></canvas>
 
-
-        <div style="display: flex; gap: 10px;">
-
-            <button id="generateBtn" style="flex: 2;">Generate Pixel Art</button>
-
-            <button id="saveBtn" style="flex: 1;">Save Image</button>
-
-            <button id="saveJsonBtn" style="flex: 1;">Save Project (.json)</button>
-
+        <div class="report-section" id="reportSection">
+            <h3 class="report-title">📦 Used Block List & Quantities</h3>
+            <div class="report-grid" id="reportContainer"></div>
         </div>
 
+        <div class="footer">
+            <p>Made By: <strong>Burhan</strong></p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/burhanpw/" target="_blank" class="social-btn insta-btn">Instagram</a>
+                <a href="https://discord.gg/tHA2dA6pYY" target="_blank" class="social-btn dc-btn">Discord</a>
+                <a href="https://github.com/BurhanYslmn/Pixel-Art-converter" target="_blank" class="social-btn github-btn">GitHub</a>
+            </div>
+        </div>
     </div>
-
-
-
-    <div id="inspectorArea" class="hidden">
-
-        <div class="form-group" style="border: 2px dashed #4CAF50; padding: 20px; text-align: center; border-radius: 8px; background: #222;">
-
-            <label style="color: #4CAF50; font-size: 16px; margin-bottom: 10px;">Load your previously saved project file (.json) to inspect pixels:</label>
-
-            <input type="file" id="jsonUpload" accept=".json">
-
-        </div>
-
-    </div>
-
-
-
-    <canvas id="resultCanvas" width="600" height="600" title="Click on the image to see the used block!"></canvas>
-
-
-
-    <div class="report-section" id="reportSection">
-
-        <h3 class="report-title">📦 Used Block List & Quantities</h3>
-
-        <div class="report-grid" id="reportContainer"></div>
-
-    </div>
-
-
-
-    <div class="footer">
-
-        <p>Made By: <strong>Burhan</strong></p>
-
-        <div class="social-links">
-
-            <a href="https://www.instagram.com/burhanpw/" target="_blank" class="social-btn insta-btn">Instagram</a>
-
-            <a href="https://discord.gg/tHA2dA6pYY" target="_blank" class="social-btn dc-btn">Discord</a>
-
-            <a href="https://github.com/BurhanYslmn/Pixel-Art-converter" target="_blank" class="social-btn github-btn">GitHub</a>
-
-        </div>
-
-    </div>
-
 </div>
 
-
-
 <script>
-
+    // Genel Elementler
     const imageInput = document.getElementById('imageInput');
-
     const blockInput = document.getElementById('blockInput');
-
     const blockPreview = document.getElementById('blockPreview');
-
     const modeSelect = document.getElementById('modeSelect');
-
+    const mainWrapper = document.querySelector('.main-wrapper');
     const pixelWidthInput = document.getElementById('pixelWidth');
-
     const pixelHeightInput = document.getElementById('pixelHeight');
-
     const outputWidthInput = document.getElementById('outputWidthPx');
-
     
-
+    // Butonlar
     const generateBtn = document.getElementById('generateBtn');
-
+    const createGridBtn = document.getElementById('createGridBtn');
     const saveBtn = document.getElementById('saveBtn');
-
     const saveJsonBtn = document.getElementById('saveJsonBtn');
-
     const jsonUpload = document.getElementById('jsonUpload');
-
     
-
+    // Alanlar
     const resultCanvas = document.getElementById('resultCanvas');
-
     const reportSection = document.getElementById('reportSection');
-
     const reportContainer = document.getElementById('reportContainer');
-
-    
-
     const generatorArea = document.getElementById('generatorArea');
-
     const inspectorArea = document.getElementById('inspectorArea');
-
+    const mainImageGroup = document.getElementById('mainImageGroup');
     const blockUploadGroup = document.getElementById('blockUploadGroup');
+    const noBlockText = document.getElementById('noBlockText');
+    const plannerHelp = document.getElementById('plannerHelp');
 
-    
+    // Sidebar Elementleri
+    const plannerSidebar = document.getElementById('plannerSidebar');
+    const plannerBgGroup = document.getElementById('plannerBgGroup');
+    const plannerBgInput = document.getElementById('plannerBgInput');
+    const sidebarEraser = document.getElementById('sidebarEraser');
+    const sidebarPicker = document.getElementById('sidebarPicker');
+    const sidebarPalette = document.getElementById('sidebarPalette');
+    const emptyPaletteMsg = document.getElementById('emptyPaletteMsg');
+    const allowStackingToggle = document.getElementById('allowStackingToggle');
 
     const ctx = resultCanvas.getContext('2d');
 
-
-
+    // Durum Değişkenleri
     let uploadedImage = new Image();
-
     let customBlocks = []; 
-
     let blockMap = [];
-
     let currentGridW = 0;
-
     let currentGridH = 0;
-
     let targetCols = 0;
-
     let targetRows = 0;
-
     let sonProjeVerisi = null;
+    let canvasScene = 'empty';
+    let renderFrame = 0;
+    const imageCache = new Map();
 
+    // Planner Değişkenleri
+    let currentBrush = null; // Seçili blok objesini, 'eraser' veya 'picker' tutar
+    let isPainting = false;
+    let plannerBgImage = null;
 
-
-    // Her blok/piksel hücresinin TAM olarak aynı piksel boyutunda çizilmesini sağlamak için
-
-    // kullanılacak hücre boyutunu hesaplar. Artık sabit 600px yerine kullanıcının
-
-    // "Output Image Width (px)" alanına girdiği değeri kullanıyoruz (Paint'teki genişlik
-
-    // ayarı gibi). Yükseklik, blok sayısı oranına göre otomatik olarak orantılı çıkar.
-
-    function calculateCellSize(cols) {
-
-        const outputWidthPx = parseInt(outputWidthInput.value) || 600;
-
-        const cellSize = Math.floor(outputWidthPx / cols);
-
-        return Math.max(cellSize, 1);
-
+    function getOutputWidth() {
+        const value = parseInt(outputWidthInput.value, 10) || 600;
+        return Math.max(16, Math.min(4096, value));
     }
 
+    function setupCanvas(cols, rows) {
+        targetCols = Math.max(1, cols);
+        targetRows = Math.max(1, rows);
 
+        const outputWidthPx = getOutputWidth();
+        resultCanvas.width = outputWidthPx;
+        resultCanvas.height = Math.max(1, Math.round(outputWidthPx * (targetRows / targetCols)));
 
-    const blockTooltip = document.createElement('div');
+        currentGridW = resultCanvas.width / targetCols;
+        currentGridH = resultCanvas.height / targetRows;
+        ctx.imageSmoothingEnabled = false;
+    }
 
-    blockTooltip.style.position = 'fixed'; /* absolute yerine fixed kullandık */
+    function getCellRect(x, y) {
+        const left = Math.round((x * resultCanvas.width) / targetCols);
+        const top = Math.round((y * resultCanvas.height) / targetRows);
+        const right = Math.round(((x + 1) * resultCanvas.width) / targetCols);
+        const bottom = Math.round(((y + 1) * resultCanvas.height) / targetRows);
+        return { x: left, y: top, width: right - left, height: bottom - top };
+    }
 
-    blockTooltip.style.top = '20px';       /* Ekranın üstünden 20px boşluk */
+    function getGridPosition(e) {
+        const rect = resultCanvas.getBoundingClientRect();
+        if (!rect.width || !rect.height || !targetCols || !targetRows) return null;
 
-    blockTooltip.style.right = '20px';     /* Ekranın sağından 20px boşluk */
+        const mouseX = (e.clientX - rect.left) * (resultCanvas.width / rect.width);
+        const mouseY = (e.clientY - rect.top) * (resultCanvas.height / rect.height);
+        const gridX = Math.floor((mouseX * targetCols) / resultCanvas.width);
+        const gridY = Math.floor((mouseY * targetRows) / resultCanvas.height);
 
-    blockTooltip.style.display = 'none';
+        if (gridX < 0 || gridX >= targetCols || gridY < 0 || gridY >= targetRows) return null;
+        return { x: gridX, y: gridY };
+    }
 
-    blockTooltip.style.backgroundColor = '#2a2a40';
+    function getCellStack(cell) {
+        if (!cell) return [];
+        return Array.isArray(cell) ? cell.filter(Boolean) : [cell];
+    }
 
-    blockTooltip.style.color = '#b3b3cc';
+    function getTopCellBlock(cell) {
+        const stack = getCellStack(cell);
+        return stack.length ? stack[stack.length - 1] : null;
+    }
 
-    blockTooltip.style.padding = '10px 15px';
+    function setCellStack(y, x, stack) {
+        blockMap[y][x] = stack.length === 0 ? null : (stack.length === 1 ? stack[0] : stack);
+    }
 
-    blockTooltip.style.border = '2px solid #4CAF50';
+    function isStackingEnabled() {
+        return modeSelect.value === 'planner' && allowStackingToggle.checked;
+    }
 
-    blockTooltip.style.borderRadius = '8px';
+    function getBlockImage(cell) {
+        if (!cell) return null;
+        if (cell.image && cell.image.complete) return cell.image;
 
-    blockTooltip.style.boxShadow = '0 6px 15px rgba(0,0,0,0.6)';
-
-    blockTooltip.style.pointerEvents = 'none';
-
-    blockTooltip.style.zIndex = '1000';
-
-    blockTooltip.style.fontSize = '13px';
-
-    document.body.appendChild(blockTooltip);
-
-    let tooltipTimeout;
-
-
-
-    modeSelect.addEventListener('change', function() {
-
-        if (this.value === "inspect") {
-
-            generatorArea.classList.add('hidden');
-
-            inspectorArea.classList.remove('hidden');
-
-            ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-
-            reportSection.style.display = 'none';
-
-        } else {
-
-            generatorArea.classList.remove('hidden');
-
-            inspectorArea.classList.add('hidden');
-
-            if (this.value === "auto") {
-
-                blockUploadGroup.style.display = 'none';
-
-            } else {
-
-                blockUploadGroup.style.display = 'block';
-
-            }
-
+        const uploadedBlock = customBlocks.find(block => block.name === cell.name && block.src === cell.src);
+        if (uploadedBlock) {
+            cell.image = uploadedBlock.image;
+            return uploadedBlock.image;
         }
 
+        if (!cell.src) return null;
+        if (imageCache.has(cell.src)) return imageCache.get(cell.src);
+
+        const image = new Image();
+        image.onload = scheduleRender;
+        image.src = cell.src;
+        imageCache.set(cell.src, image);
+        return image;
+    }
+
+    function drawBaseGrid() {
+        if (canvasScene === 'planner' && plannerBgImage) {
+            ctx.drawImage(plannerBgImage, 0, 0, resultCanvas.width, resultCanvas.height);
+            return;
+        }
+
+        for (let y = 0; y < targetRows; y++) {
+            for (let x = 0; x < targetCols; x++) {
+                const cell = getCellRect(x, y);
+                ctx.fillStyle = (x + y) % 2 === 0 ? '#1a1a2e' : '#16213e';
+                ctx.fillRect(cell.x, cell.y, cell.width, cell.height);
+            }
+        }
+    }
+
+    function drawBlockMap() {
+        for (let y = 0; y < targetRows; y++) {
+            for (let x = 0; x < targetCols; x++) {
+                const stack = getCellStack(blockMap[y] && blockMap[y][x]);
+                if (!stack.length) continue;
+
+                const cell = getCellRect(x, y);
+                stack.forEach(block => {
+                    const image = getBlockImage(block);
+                    if (!image || !image.complete || !image.naturalWidth) return;
+                    ctx.drawImage(image, cell.x, cell.y, cell.width, cell.height);
+                });
+            }
+        }
+    }
+
+    function drawPlannerGridLines(forExport = false) {
+        if (canvasScene !== 'planner') return;
+
+        const rect = resultCanvas.getBoundingClientRect();
+        const verticalSize = forExport ? 1 : Math.max(1, Math.round(resultCanvas.width / Math.max(1, rect.width)));
+        const horizontalSize = forExport ? 1 : Math.max(1, Math.round(resultCanvas.height / Math.max(1, rect.height)));
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+
+        for (let x = 1; x < targetCols; x++) {
+            const position = Math.round((x * resultCanvas.width) / targetCols);
+            ctx.fillRect(position - Math.floor(verticalSize / 2), 0, verticalSize, resultCanvas.height);
+        }
+
+        for (let y = 1; y < targetRows; y++) {
+            const position = Math.round((y * resultCanvas.height) / targetRows);
+            ctx.fillRect(0, position - Math.floor(horizontalSize / 2), resultCanvas.width, horizontalSize);
+        }
+    }
+
+    function renderCurrentScene(forExport = false) {
+        if (!targetCols || !targetRows || canvasScene === 'auto' || canvasScene === 'empty') return;
+
+        ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        ctx.imageSmoothingEnabled = false;
+
+        if (canvasScene === 'planner' || canvasScene === 'inspect') drawBaseGrid();
+        if (canvasScene === 'planner' || canvasScene === 'inspect' || canvasScene === 'blocks') drawBlockMap();
+        drawPlannerGridLines(forExport);
+    }
+
+    function scheduleRender() {
+        cancelAnimationFrame(renderFrame);
+        renderFrame = requestAnimationFrame(() => renderCurrentScene(false));
+    }
+
+    function resizeCurrentCanvas() {
+        if (!targetCols || !targetRows) return;
+
+        if (canvasScene === 'auto' && uploadedImage.src) {
+            generateAutoPixelArt(targetCols, targetRows);
+            return;
+        }
+
+        setupCanvas(targetCols, targetRows);
+        renderCurrentScene(false);
+        scheduleRender();
+    }
+
+    const blockTooltip = document.createElement('div');
+    blockTooltip.style.position = 'fixed'; 
+    blockTooltip.style.top = '20px';       
+    blockTooltip.style.right = '20px';     
+    blockTooltip.style.display = 'none';
+    blockTooltip.style.backgroundColor = '#2a2a40';
+    blockTooltip.style.color = '#b3b3cc';
+    blockTooltip.style.padding = '10px 15px';
+    blockTooltip.style.border = '2px solid #4CAF50';
+    blockTooltip.style.borderRadius = '8px';
+    blockTooltip.style.boxShadow = '0 6px 15px rgba(0,0,0,0.6)';
+    blockTooltip.style.pointerEvents = 'none';
+    blockTooltip.style.zIndex = '1000';
+    blockTooltip.style.fontSize = '13px';
+    document.body.appendChild(blockTooltip);
+    let tooltipTimeout;
+
+    // Fırça ve Araç Seçimi Mantığı
+    function clearBrushSelection() {
+        document.querySelectorAll('.block-thumb, .tool-btn, .palette-item').forEach(el => el.classList.remove('selected-brush'));
+    }
+
+    function selectBrush(brushData, element) {
+        clearBrushSelection();
+        currentBrush = brushData;
+
+        if (brushData && typeof brushData === 'object') {
+            document.querySelectorAll('.block-thumb, .palette-item').forEach(item => {
+                if (item.title === brushData.name) item.classList.add('selected-brush');
+            });
+        } else if (element) {
+            element.classList.add('selected-brush');
+        }
+    }
+
+    sidebarEraser.addEventListener('click', () => { selectBrush('eraser', sidebarEraser); });
+    sidebarPicker.addEventListener('click', () => { selectBrush('picker', sidebarPicker); });
+
+    // Mod Değiştirme
+    modeSelect.addEventListener('change', function() {
+        const mode = this.value;
+        mainWrapper.classList.toggle('planner-active', mode === 'planner');
+        generatorArea.classList.remove('hidden');
+        inspectorArea.classList.add('hidden');
+        blockUploadGroup.style.display = 'block';
+        mainImageGroup.style.display = 'block';
+        generateBtn.classList.remove('hidden');
+        createGridBtn.classList.add('hidden');
+        plannerHelp.style.display = 'none';
+        plannerSidebar.classList.add('hidden');
+        plannerBgGroup.classList.add('hidden');
+
+        if (mode === "inspect") {
+            generatorArea.classList.add('hidden');
+            inspectorArea.classList.remove('hidden');
+            canvasScene = 'empty';
+            targetCols = 0;
+            targetRows = 0;
+            blockMap = [];
+            ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+            reportSection.style.display = 'none';
+        } else if (mode === "auto") {
+            blockUploadGroup.style.display = 'none';
+        } else if (mode === "planner") {
+            mainImageGroup.style.display = 'none'; 
+            generateBtn.classList.add('hidden');
+            createGridBtn.classList.remove('hidden');
+            plannerHelp.style.display = 'block';
+            plannerSidebar.classList.remove('hidden');
+            plannerBgGroup.classList.remove('hidden');
+            if (customBlocks.length > 0) noBlockText.style.display = 'none';
+        }
     });
 
-
-
+    // Ana Resim Yükleme (Option 1 & 2)
     imageInput.addEventListener('change', function(e) {
-
         const file = e.target.files[0];
-
         if (!file) return;
-
         const reader = new FileReader();
-
         reader.onload = function(event) { uploadedImage.src = event.target.result; };
-
         reader.readAsDataURL(file);
-
     });
 
+    // Planner için Arka Plan (Referans) Resmi Yükleme
+    plannerBgInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) {
+            plannerBgImage = null;
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                plannerBgImage = img;
+                // Resmi yükleyince yüksekliği en/boy oranına göre otomatik ayarla
+                const aspect = img.height / img.width;
+                const targetW = parseInt(pixelWidthInput.value) || 50;
+                const targetH = Math.max(8, Math.round(targetW * aspect));
+                
+                pixelHeightInput.value = targetH; // Formu güncelle
+                
+                // Izgarayı otomatik yeniden oluştur
+                if(modeSelect.value === 'planner') {
+                    initPlannerGrid(targetW, targetH);
+                }
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
 
-
+    // Blok Paleti Yükleme
     blockInput.addEventListener('change', function(e) {
-
         const files = e.target.files;
-
         if (files.length === 0) return;
 
-
-
-        blockPreview.innerHTML = '';
-
-        customBlocks = [];
-
-
+        noBlockText.style.display = 'none';
 
         Array.from(files).forEach(file => {
-
             const reader = new FileReader();
-
             reader.onload = function(event) {
-
                 const img = new Image();
-
                 img.onload = function() {
-
                     const tempCanvas = document.createElement('canvas');
-
-                    tempCanvas.width = 1;
-
-                    tempCanvas.height = 1;
-
+                    tempCanvas.width = 1; tempCanvas.height = 1;
                     const tempCtx = tempCanvas.getContext('2d');
-
                     tempCtx.drawImage(img, 0, 0, 1, 1);
-
                     const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
-
                     
-
                     const cleanName = file.name.split('.').slice(0, -1).join('.');
 
-
-
                     const blockObj = {
-
                         image: img,
-
                         src: event.target.result, 
-
                         rgb: [pixelData[0], pixelData[1], pixelData[2]],
-
                         name: cleanName,
-
                         count: 0 
-
                     };
-
-
 
                     customBlocks.push(blockObj);
 
-
-
                     const wrapper = document.createElement('div');
-
                     wrapper.className = 'block-wrapper';
 
-
-
                     const thumb = document.createElement('img');
-
                     thumb.src = img.src;
-
                     thumb.className = 'block-thumb';
-
                     thumb.title = cleanName;
 
-
-
-                    const removeBtn = document.createElement('div');
-
-                    removeBtn.className = 'remove-btn';
-
-                    removeBtn.innerHTML = '&times;';
-
-                    removeBtn.title = "Remove block";
-
-                    
-
-                    removeBtn.addEventListener('click', function() {
-
-                        const index = customBlocks.indexOf(blockObj);
-
-                        if (index > -1) {
-
-                            customBlocks.splice(index, 1);
-
+                    thumb.addEventListener('click', () => {
+                        if(modeSelect.value === "planner") {
+                            selectBrush(blockObj, thumb);
                         }
-
-                        wrapper.remove();
-
-
-
-                        if (customBlocks.length === 0) {
-
-                            blockPreview.innerHTML = '<span style="color:#666; font-size:12px; margin:auto;">No blocks uploaded yet.</span>';
-
-                        }
-
                     });
 
-
+                    const removeBtn = document.createElement('div');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.title = "Remove block";
+                    
+                    removeBtn.addEventListener('click', function(ev) {
+                        ev.stopPropagation();
+                        const index = customBlocks.indexOf(blockObj);
+                        if (index > -1) customBlocks.splice(index, 1);
+                        wrapper.remove();
+                        if (currentBrush === blockObj) {
+                            currentBrush = null;
+                            clearBrushSelection();
+                        }
+                        if (customBlocks.length === 0) noBlockText.style.display = 'block';
+                        drawInventoryReport(); // Paleti günceller
+                    });
 
                     wrapper.appendChild(thumb);
-
                     wrapper.appendChild(removeBtn);
-
                     blockPreview.appendChild(wrapper);
-
                 };
-
                 img.src = event.target.result;
-
             };
-
             reader.readAsDataURL(file);
-
         });
-
     });
-
-
 
     function getClosestBlock(r, g, b) {
-
         let minDistance = Infinity;
-
         let closestBlock = null;
-
-
-
         for (let block of customBlocks) {
-
-            let distance = Math.sqrt(
-
-                Math.pow(r - block.rgb[0], 2) +
-
-                Math.pow(g - block.rgb[1], 2) +
-
-                Math.pow(b - block.rgb[2], 2)
-
-            );
-
-
-
+            let distance = Math.sqrt(Math.pow(r - block.rgb[0], 2) + Math.pow(g - block.rgb[1], 2) + Math.pow(b - block.rgb[2], 2));
             if (distance < minDistance) {
-
                 minDistance = distance;
-
                 closestBlock = block;
-
             }
-
         }
-
         return closestBlock;
-
     }
 
-
-
+    // Buton Tetikleyicileri
     generateBtn.addEventListener('click', function() {
-
-        if (!uploadedImage.src) {
-
-            alert("Please upload a main image first!");
-
-            return;
-
-        }
-
-
-
+        if (!uploadedImage.src) { alert("Please upload a main image first!"); return; }
         const targetW = parseInt(pixelWidthInput.value);
-
         const targetH = parseInt(pixelHeightInput.value);
-
         const mode = modeSelect.value;
-
-
-
-        blockMap = [];
-
-        sonProjeVerisi = null; 
-
-
+        blockMap = []; sonProjeVerisi = null; 
 
         if (mode === "auto") {
-
             reportSection.style.display = 'none'; 
-
             generateAutoPixelArt(targetW, targetH);
-
         } else if (mode === "blocks") {
-
-            if (customBlocks.length === 0) {
-
-                alert("Error: To generate with blocks, you must first upload block images in 'Option 2'!");
-
-                return;
-
-            }
-
+            if (customBlocks.length === 0) { alert("Error: To generate with blocks, you must first upload block images!"); return; }
             generateCustomBlockArt(targetW, targetH);
-
         }
-
     });
 
-
+    createGridBtn.addEventListener('click', function() {
+        const targetW = parseInt(pixelWidthInput.value);
+        const targetH = parseInt(pixelHeightInput.value);
+        initPlannerGrid(targetW, targetH);
+    });
 
     saveBtn.addEventListener('click', function() {
-
-        if (blockMap.length === 0 && modeSelect.value === "blocks") {
-
-            alert("Please upload a main image and generate pixel art first!");
-
-            return;
-
+        if (blockMap.length === 0 && (modeSelect.value === "blocks" || modeSelect.value === "planner")) {
+            alert("Please generate pixel art or create a grid first!"); return;
         }
 
-        
-
+        if (canvasScene !== 'auto') renderCurrentScene(true);
         const dataURL = resultCanvas.toDataURL('image/png');
+        if (canvasScene !== 'auto') renderCurrentScene(false);
 
         const downloadLink = document.createElement('a');
-
-        downloadLink.href = dataURL;
-
-        downloadLink.download = `pixel-art-${Date.now()}.png`; 
-
-        document.body.appendChild(downloadLink);
-
-        downloadLink.click();
-
-        document.body.removeChild(downloadLink);
-
+        downloadLink.href = dataURL; downloadLink.download = `pixel-art-${Date.now()}.png`; 
+        document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink);
     });
-
-
 
     saveJsonBtn.addEventListener('click', function() {
-
-        if (!sonProjeVerisi || sonProjeVerisi.matrix.length === 0) {
-
-            alert("To download a project file, you must first generate Pixel Art using Option 2!");
-
-            return;
-
+        if (!sonProjeVerisi || !sonProjeVerisi.matrix) {
+            alert("To download a project file, you must first create something using Blocks or Planner!"); return;
         }
-
-        
-
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sonProjeVerisi));
-
         const downloadAnchor = document.createElement('a');
-
-        downloadAnchor.setAttribute("href", dataStr);
-
-        downloadAnchor.setAttribute("download", `pixel-project-${Date.now()}.json`);
-
-        document.body.appendChild(downloadAnchor);
-
-        downloadAnchor.click();
-
-        downloadAnchor.remove();
-
+        downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", `pixel-project-${Date.now()}.json`);
+        document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
     });
-
-
 
     function generateAutoPixelArt(targetW, targetH) {
-
-        // Kanvas boyutunu artık kullanıcının girdiği "Output Image Width" değerine göre
-
-        // ayarlıyoruz; yükseklik, blok oranını (targetW:targetH) koruyacak şekilde
-
-        // otomatik hesaplanıyor (Paint'te sadece genişliği girip en-boy oranını koru
-
-        // seçeneğini işaretlemek gibi).
-
-        const outputWidthPx = parseInt(outputWidthInput.value) || 600;
-
-        resultCanvas.width = outputWidthPx;
-
-        resultCanvas.height = Math.round(outputWidthPx * (targetH / targetW));
-
-
+        canvasScene = 'auto';
+        setupCanvas(targetW, targetH);
 
         const offScreenCanvas = document.createElement('canvas');
-
         offScreenCanvas.width = targetW;
-
         offScreenCanvas.height = targetH;
-
         const offCtx = offScreenCanvas.getContext('2d');
-
-        
-
         offCtx.drawImage(uploadedImage, 0, 0, targetW, targetH);
 
-        
-
         ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-
         ctx.imageSmoothingEnabled = false;
-
         ctx.drawImage(offScreenCanvas, 0, 0, targetW, targetH, 0, 0, resultCanvas.width, resultCanvas.height);
-
     }
-
-
 
     function generateCustomBlockArt(targetW, targetH) {
-
         const offScreenCanvas = document.createElement('canvas');
-
         offScreenCanvas.width = targetW;
-
         offScreenCanvas.height = targetH;
-
         const offCtx = offScreenCanvas.getContext('2d');
-
         offCtx.drawImage(uploadedImage, 0, 0, targetW, targetH);
 
-        
-
         const imageData = offCtx.getImageData(0, 0, targetW, targetH);
-
         const data = imageData.data;
 
+        canvasScene = 'blocks';
+        setupCanvas(targetW, targetH);
+        blockMap = [];
 
-
-        // Kanvası, her hücrenin tam sayı ve birebir eşit piksel boyutunda olacağı
-
-        // şekilde yeniden boyutlandırıyoruz (hücre boyutu * sütun/satır sayısı).
-
-        // Hücre boyutu, kullanıcının girdiği çıktı genişliğine göre hesaplanıyor.
-
-        const cellSize = calculateCellSize(targetW);
-
-        resultCanvas.width = cellSize * targetW;
-
-        resultCanvas.height = cellSize * targetH;
-
-
-
-        ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-
-        ctx.imageSmoothingEnabled = false;
-
-        ctx.mozImageSmoothingEnabled = false;
-
-        ctx.webkitImageSmoothingEnabled = false;
-
-        ctx.msImageSmoothingEnabled = false;
-
-
-
-        const blockGridW = cellSize;
-
-        const blockGridH = cellSize;
-
-
-
-        currentGridW = blockGridW;
-
-        currentGridH = blockGridH;
-
-        targetCols = targetW;
-
-        targetRows = targetH;
-
-
-
-        const jitterAmount = 30; 
-
-        
-
-        let flatMatrix = [];
-
-
-
-        customBlocks.forEach(b => b.count = 0);
-
-
+        const jitterAmount = 30;
+        const flatMatrix = [];
+        customBlocks.forEach(block => block.count = 0);
 
         let pixelIndex = 0;
-
         for (let y = 0; y < targetH; y++) {
-
-            blockMap[y] = []; 
-
-
-
+            blockMap[y] = [];
             for (let x = 0; x < targetW; x++) {
-
-                let r = data[pixelIndex];
-
-                let g = data[pixelIndex+1];
-
-                let b = data[pixelIndex+2];
-
-                let a = data[pixelIndex+3];
-
-
+                const r = data[pixelIndex];
+                const g = data[pixelIndex + 1];
+                const b = data[pixelIndex + 2];
+                const a = data[pixelIndex + 3];
 
                 if (a > 10) {
-
-                    let jitterR = (Math.random() * 2 - 1) * jitterAmount;
-
-                    let jitterG = (Math.random() * 2 - 1) * jitterAmount;
-
-                    let jitterB = (Math.random() * 2 - 1) * jitterAmount;
-
-
-
-                    let finalR = Math.max(0, Math.min(255, r + jitterR));
-
-                    let finalG = Math.max(0, Math.min(255, g + jitterG));
-
-                    let finalB = Math.max(0, Math.min(255, b + jitterB));
-
-
-
-                    let closest = getClosestBlock(finalR, finalG, finalB);
-
-                    
+                    const finalR = Math.max(0, Math.min(255, r + (Math.random() * 2 - 1) * jitterAmount));
+                    const finalG = Math.max(0, Math.min(255, g + (Math.random() * 2 - 1) * jitterAmount));
+                    const finalB = Math.max(0, Math.min(255, b + (Math.random() * 2 - 1) * jitterAmount));
+                    const closest = getClosestBlock(finalR, finalG, finalB);
 
                     if (closest) {
-
                         closest.count++;
-
-                        
-
-                        let blockInfo = {
-
-                            name: closest.name,
-
-                            src: closest.src
-
-                        };
-
-                        
-
-                        blockMap[y][x] = blockInfo; 
-
-                        
-
-                        flatMatrix.push({
-
-                            x: x,
-
-                            y: y,
-
-                            blockName: closest.name,
-
-                            src: closest.src
-
-                        });
-
-
-
-                        const currentX = x * blockGridW;
-
-                        const currentY = y * blockGridH;
-
-
-
-                        // Bitişik bloklar arasında ince açık renkli "dikiş" çizgisi kalmasın diye
-
-                        // her bloğu 1px taşırarak çiziyoruz. Döngü soldan sağa, yukarıdan aşağıya
-
-                        // ilerlediği için bir sonraki blok bu taşan kısmın üzerine çiziliyor ve
-
-                        // sızıntı/çizgi görünmüyor.
-
-                        const overlap = 1;
-
-                        ctx.drawImage(closest.image, currentX, currentY, blockGridW + overlap, blockGridH + overlap);
-
+                        blockMap[y][x] = { name: closest.name, src: closest.src, image: closest.image };
+                        flatMatrix.push({ x, y, blockName: closest.name, src: closest.src });
                     } else {
-
                         blockMap[y][x] = null;
-
                     }
-
                 } else {
-
                     blockMap[y][x] = null;
-
                 }
 
-                
-
-                pixelIndex += 4; 
-
+                pixelIndex += 4;
             }
-
         }
 
-
-
-        sonProjeVerisi = {
-
-            width: targetW,
-
-            height: targetH,
-
-            matrix: flatMatrix
-
-        };
-
-
-
+        renderCurrentScene(false);
+        sonProjeVerisi = { width: targetW, height: targetH, matrix: flatMatrix };
         drawInventoryReport();
-
     }
 
-
-
-    jsonUpload.addEventListener('change', function(e) {
-
-        const file = e.target.files[0];
-
-        if (!file) return;
-
-
-
-        const reader = new FileReader();
-
-        reader.onload = function(evt) {
-
-            try {
-
-                const proje = JSON.parse(evt.target.result);
-
-                if(!proje.matrix || !proje.width || !proje.height) throw new Error();
-
-                
-
-                blockMap = [];
-
-                for(let i=0; i<proje.height; i++) blockMap[i] = [];
-
-                
-
-                targetCols = proje.width;
-
-                targetRows = proje.height;
-
-
-
-                const cellSize = calculateCellSize(targetCols);
-
-                resultCanvas.width = cellSize * targetCols;
-
-                resultCanvas.height = cellSize * targetRows;
-
-
-
-                currentGridW = cellSize;
-
-                currentGridH = cellSize;
-
-                
-
-                ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-
-                ctx.imageSmoothingEnabled = false;
-
-                ctx.mozImageSmoothingEnabled = false;
-
-                ctx.webkitImageSmoothingEnabled = false;
-
-                ctx.msImageSmoothingEnabled = false;
-
-                
-
-                let objCountMap = {};
-
-                let loadedImages = 0;
-
-                
-
-                proje.matrix.forEach(pixel => {
-
-                    blockMap[pixel.y][pixel.x] = { name: pixel.blockName };
-
-                    
-
-                    if(!objCountMap[pixel.blockName]) {
-
-                        objCountMap[pixel.blockName] = { count: 0, src: pixel.src };
-
-                    }
-
-                    objCountMap[pixel.blockName].count++;
-
-
-
-                    let tempImg = new Image();
-
-                    tempImg.onload = function() {
-
-                        const currentX = pixel.x * currentGridW;
-
-                        const currentY = pixel.y * currentGridH;
-
-                        const overlap = 1;
-
-                        ctx.drawImage(tempImg, currentX, currentY, currentGridW + overlap, currentGridH + overlap);
-
-                        
-
-                        loadedImages++;
-
-                        if(loadedImages === proje.matrix.length) {
-
-                            raporuJsonDanOlustur(objCountMap);
-
-                        }
-
-                    };
-
-                    tempImg.src = pixel.src;
-
-                });
-
-                
-
-            } catch (error) {
-
-                alert("Invalid or corrupted project file!");
-
-            }
-
-        };
-
-        reader.readAsText(file);
-
-    });
-
-
-
-    function raporuJsonDanOlustur(objCountMap) {
-
-        reportContainer.innerHTML = ''; 
-
-        
-
-        let sortedBlocks = Object.entries(objCountMap).sort((a, b) => b[1].count - a[1].count);
-
-        
-
-        sortedBlocks.forEach(item => {
-
-            const blockName = item[0];
-
-            const data = item[1];
-
-            
-
-            const card = document.createElement('div');
-
-            card.className = 'report-item';
-
-
-
-            const img = document.createElement('img');
-
-            img.src = data.src;
-
-
-
-            const name = document.createElement('div');
-
-            name.className = 'report-item-name';
-
-            name.innerText = blockName;
-
-            name.title = blockName; 
-
-
-
-            const count = document.createElement('div');
-
-            count.className = 'report-item-count';
-
-            count.innerText = `${data.count}x`;
-
-
-
-            card.appendChild(img);
-
-            card.appendChild(name);
-
-            card.appendChild(count);
-
-            reportContainer.appendChild(card);
-
-        });
-
-        reportSection.style.display = 'block';
-
-    }
-
-
-
-    resultCanvas.addEventListener('click', function(e) {
-
-        if (modeSelect.value === "auto" || blockMap.length === 0) return;
-
-
-
-        const rect = resultCanvas.getBoundingClientRect();
-
-        
-
-        const scaleX = resultCanvas.width / rect.width;
-
-        const scaleY = resultCanvas.height / rect.height;
-
-
-
-        const mouseX = (e.clientX - rect.left) * scaleX;
-
-        const mouseY = (e.clientY - rect.top) * scaleY;
-
-
-
-        const gridX = Math.floor(mouseX / currentGridW);
-
-        const gridY = Math.floor(mouseY / currentGridH);
-
-
-
-        if (gridY >= 0 && gridY < targetRows && gridX >= 0 && gridX < targetCols) {
-
-            const block = blockMap[gridY][gridX];
-
-            if (block) {
-
-                blockTooltip.innerHTML = `Used Block:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
-
-                blockTooltip.style.display = 'block';
-
-                
-
-                /* Fareyi takip etmemesi için pozisyon hesaplama satırlarını kaldırdık */
-
-
-
-                clearTimeout(tooltipTimeout);
-
-                tooltipTimeout = setTimeout(() => {
-
-                    blockTooltip.style.display = 'none';
-
-                }, 3000);
-
-            }
-
+    function initPlannerGrid(targetW, targetH) {
+        canvasScene = 'planner';
+        setupCanvas(targetW, targetH);
+
+        blockMap = [];
+        customBlocks.forEach(block => block.count = 0);
+
+        for (let y = 0; y < targetH; y++) {
+            blockMap[y] = [];
+            for (let x = 0; x < targetW; x++) blockMap[y][x] = null;
         }
 
+        renderCurrentScene(false);
+        scheduleRender();
+        sonProjeVerisi = { width: targetW, height: targetH, matrix: [] };
+        drawInventoryReport();
+    }
+
+    resultCanvas.addEventListener('mousedown', function(e) {
+        if (modeSelect.value !== 'planner') return;
+
+        if (currentBrush === 'picker') {
+            isPainting = false;
+            paintOnCanvas(e);
+            return;
+        }
+
+        isPainting = true;
+        paintOnCanvas(e);
     });
 
+    resultCanvas.addEventListener('mousemove', function(e) {
+        if (modeSelect.value === 'planner' && isPainting && currentBrush !== 'picker') paintOnCanvas(e);
+    });
 
+    window.addEventListener('mouseup', () => { isPainting = false; });
 
-    function drawInventoryReport() {
+    function paintOnCanvas(e) {
+        if (!currentBrush) return;
 
-        reportContainer.innerHTML = ''; 
+        const position = getGridPosition(e);
+        if (!position) return;
 
+        const gridX = position.x;
+        const gridY = position.y;
+        const currentCell = blockMap[gridY][gridX];
+        const currentBlockData = getTopCellBlock(currentCell);
 
+        if (currentBrush === 'eraser') {
+            if (!currentBlockData) return;
 
-        const usedBlocks = customBlocks
+            const blockRef = customBlocks.find(block => block.name === currentBlockData.name && block.src === currentBlockData.src)
+                || customBlocks.find(block => block.name === currentBlockData.name);
+            if (blockRef && blockRef.count > 0) blockRef.count--;
 
-            .filter(b => b.count > 0)
+            const stack = getCellStack(currentCell);
+            stack.pop();
+            setCellStack(gridY, gridX, stack);
+            renderCurrentScene(false);
+            updateProjectDataAndReport();
+            return;
+        }
 
-            .sort((a, b) => b.count - a.count);
+        if (currentBrush === 'picker') {
+            if (!currentBlockData) return;
 
+            const pickedBlock = customBlocks.find(block => block.name === currentBlockData.name && block.src === currentBlockData.src)
+                || customBlocks.find(block => block.name === currentBlockData.name);
 
+            if (pickedBlock) selectBrush(pickedBlock);
+            isPainting = false;
+            return;
+        }
+
+        if (currentBlockData && !isStackingEnabled()) return;
+
+        const newBlock = {
+            name: currentBrush.name,
+            src: currentBrush.src,
+            image: currentBrush.image
+        };
+
+        currentBrush.count++;
+
+        if (isStackingEnabled()) {
+            const stack = getCellStack(currentCell);
+            stack.push(newBlock);
+            setCellStack(gridY, gridX, stack);
+        } else {
+            blockMap[gridY][gridX] = newBlock;
+        }
+
+        renderCurrentScene(false);
+        updateProjectDataAndReport();
+    }
+
+    function updateProjectDataAndReport() {
+        let flatMatrix = [];
+        for (let y = 0; y < targetRows; y++) {
+            for (let x = 0; x < targetCols; x++) {
+                const stack = getCellStack(blockMap[y][x]);
+                stack.forEach((block, layer) => {
+                    flatMatrix.push({ x: x, y: y, layer: layer, blockName: block.name, src: block.src });
+                });
+            }
+        }
+        sonProjeVerisi = { width: targetCols, height: targetRows, matrix: flatMatrix };
+        drawInventoryReport(); // Bu fonksiyon sidebar'ı da tetikler
+    }
+
+    // Sidebar Paletini Güncelle (Kullanılan Blokları Listele)
+    function updateSidebarPalette() {
+        const usedBlocks = customBlocks.filter(b => b.count > 0);
+        
+        if (usedBlocks.length === 0) {
+            emptyPaletteMsg.style.display = 'block';
+            Array.from(sidebarPalette.querySelectorAll('.palette-item')).forEach(el => el.remove());
+            return;
+        }
+        
+        emptyPaletteMsg.style.display = 'none';
+        Array.from(sidebarPalette.querySelectorAll('.palette-item')).forEach(el => el.remove());
 
         usedBlocks.forEach(block => {
-
-            const card = document.createElement('div');
-
-            card.className = 'report-item';
-
-
-
             const img = document.createElement('img');
-
             img.src = block.image.src;
-
-
-
-            const name = document.createElement('div');
-
-            name.className = 'report-item-name';
-
-            name.innerText = block.name;
-
-            name.title = block.name; 
-
-
-
-            const count = document.createElement('div');
-
-            count.className = 'report-item-count';
-
-            count.innerText = `${block.count}x`;
-
-
-
-            card.appendChild(img);
-
-            card.appendChild(name);
-
-            card.appendChild(count);
-
-            reportContainer.appendChild(card);
-
+            img.className = 'palette-item';
+            img.title = block.name;
+            
+            // Eğer o an seçili fırçaysa ona çerçeve ekle
+            if (currentBrush && currentBrush.name === block.name) {
+                img.classList.add('selected-brush');
+            }
+            
+            img.addEventListener('click', () => {
+                selectBrush(block, img);
+                // Ana menüdekini de senkronize parlat
+                const mainMatch = Array.from(blockPreview.querySelectorAll('.block-thumb')).find(m => m.title === block.name);
+                if (mainMatch) mainMatch.classList.add('selected-brush');
+            });
+            
+            sidebarPalette.appendChild(img);
         });
-
-
-
-        reportSection.style.display = 'block';
-
     }
 
+    // JSON İnceleme (Option 4)
+    jsonUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const proje = JSON.parse(evt.target.result);
+                if (!proje.matrix || !proje.width || !proje.height) throw new Error();
+
+                canvasScene = 'inspect';
+                setupCanvas(proje.width, proje.height);
+                blockMap = Array.from({ length: targetRows }, () => Array(targetCols).fill(null));
+
+                const objCountMap = {};
+
+                proje.matrix.forEach(pixel => {
+                    if (pixel.x < 0 || pixel.x >= targetCols || pixel.y < 0 || pixel.y >= targetRows) return;
+
+                    const loadedBlock = {
+                        name: pixel.blockName,
+                        src: pixel.src,
+                        image: getBlockImage({ name: pixel.blockName, src: pixel.src })
+                    };
+                    const stack = getCellStack(blockMap[pixel.y][pixel.x]);
+                    stack.push(loadedBlock);
+                    setCellStack(pixel.y, pixel.x, stack);
+
+                    if (!objCountMap[pixel.blockName]) {
+                        objCountMap[pixel.blockName] = { count: 0, src: pixel.src };
+                    }
+                    objCountMap[pixel.blockName].count++;
+                });
+
+                renderCurrentScene(false);
+                raporuJsonDanOlustur(objCountMap);
+            } catch (error) {
+                alert("Invalid or corrupted project file!");
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    function raporuJsonDanOlustur(objCountMap) {
+        reportContainer.innerHTML = ''; 
+        let sortedBlocks = Object.entries(objCountMap).sort((a, b) => b[1].count - a[1].count);
+        if(sortedBlocks.length === 0) { reportSection.style.display = 'none'; return; }
+
+        sortedBlocks.forEach(item => {
+            const blockName = item[0]; const data = item[1];
+            const card = document.createElement('div'); card.className = 'report-item';
+            const img = document.createElement('img'); img.src = data.src;
+            const name = document.createElement('div'); name.className = 'report-item-name'; name.innerText = blockName; name.title = blockName; 
+            const count = document.createElement('div'); count.className = 'report-item-count'; count.innerText = `${data.count}x`;
+
+            card.appendChild(img); card.appendChild(name); card.appendChild(count); reportContainer.appendChild(card);
+        });
+        reportSection.style.display = 'block';
+    }
+
+    resultCanvas.addEventListener('click', function(e) {
+        if (modeSelect.value === "planner" || modeSelect.value === "auto" || blockMap.length === 0) return;
+
+        const position = getGridPosition(e);
+        if (!position) return;
+
+        const gridX = position.x;
+        const gridY = position.y;
+
+        if (gridY >= 0 && gridY < targetRows && gridX >= 0 && gridX < targetCols) {
+            const block = getTopCellBlock(blockMap[gridY][gridX]);
+            if (block) {
+                blockTooltip.innerHTML = `Used Block:<br><strong style="color:#fff; font-size:16px;">📦 ${block.name}</strong>`;
+                blockTooltip.style.display = 'block';
+                clearTimeout(tooltipTimeout);
+                tooltipTimeout = setTimeout(() => { blockTooltip.style.display = 'none'; }, 3000);
+            }
+        }
+    });
+
+    let outputResizeTimer;
+    outputWidthInput.addEventListener('input', function() {
+        clearTimeout(outputResizeTimer);
+        outputResizeTimer = setTimeout(resizeCurrentCanvas, 120);
+    });
+
+    window.addEventListener('resize', function() {
+        if (canvasScene === 'planner') scheduleRender();
+    });
+
+    if ('ResizeObserver' in window) {
+        const canvasResizeObserver = new ResizeObserver(() => {
+            if (canvasScene === 'planner') scheduleRender();
+        });
+        canvasResizeObserver.observe(resultCanvas);
+    }
+
+    function drawInventoryReport() {
+        reportContainer.innerHTML = ''; 
+        const usedBlocks = customBlocks.filter(b => b.count > 0).sort((a, b) => b.count - a.count);
+
+        if (usedBlocks.length === 0) {
+            reportSection.style.display = 'none';
+        } else {
+            usedBlocks.forEach(block => {
+                const card = document.createElement('div'); card.className = 'report-item';
+                const img = document.createElement('img'); img.src = block.image.src;
+                const name = document.createElement('div'); name.className = 'report-item-name'; name.innerText = block.name; name.title = block.name; 
+                const count = document.createElement('div'); count.className = 'report-item-count'; count.innerText = `${block.count}x`;
+
+                card.appendChild(img); card.appendChild(name); card.appendChild(count); reportContainer.appendChild(card);
+            });
+            reportSection.style.display = 'block';
+        }
+        
+        // Ana envanter güncellendiğinde Sol Paleti de mutlaka güncelle!
+        updateSidebarPalette();
+    }
 </script>
-
 </body>
-
 </html>
