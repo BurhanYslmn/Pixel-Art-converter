@@ -171,6 +171,10 @@ button.palette-control{width:auto;min-width:0;font-size:11px;padding:5px 7px;mar
 
 <style id="photoDesignerResponsive">
 /* Icons in the compact Photo Designer toolbox. */
+.eraser-size-control{display:flex;align-items:center;gap:7px;justify-content:space-between;margin:0 0 9px;flex-wrap:wrap}
+.eraser-size-control select{width:auto;max-width:100%;min-width:74px;padding:6px;font-size:12px}
+.eraser-cursor{position:absolute;pointer-events:none;z-index:2;outline:2px solid #20d9eb;outline-offset:-1px;background:rgba(0,211,237,.16);box-shadow:0 0 0 1px #07132470;touch-action:none}
+
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .tools-panel .tool-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:11px 0 12px}
 .tools-panel .tool-list>button{position:relative;grid-column:auto;display:flex;align-items:center;justify-content:center;min-width:0;width:100%;height:51px;padding:8px;border-radius:9px;isolation:isolate}
@@ -293,10 +297,11 @@ body.editor-immersive #editorShell .editor-center{min-height:0;height:100%}
     <div class="backdrop" id="editBackdrop"></div>
     <aside class="editor-panel tools-panel" id="toolsPanel"><button id="closeTools" class="panel-close" data-i18n="close">Close</button><h3 data-i18n="tools">Tools</h3>
       <div class="tool-list" role="toolbar" aria-label="Photo Designer tools"><button type="button" data-tool="pan" data-tool-label="move" class="active" aria-label="Move" data-tooltip="Move"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5a1.5 1.5 0 0 1 3 0v6-8a1.5 1.5 0 0 1 3 0v8-6a1.5 1.5 0 0 1 3 0v6-3a1.5 1.5 0 0 1 3 0v6c0 4-2.5 7-7 7h-2c-2 0-3.5-1-4.5-2.5L3.5 14a1.5 1.5 0 0 1 2.3-1.9L8 14Z"/></svg><span class="sr-only" data-i18n="move">Move</span></button><button type="button" data-tool="erase" data-tool-label="eraser" aria-label="Eraser" data-tooltip="Eraser"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 20-9 0M8 20 3 15a2 2 0 0 1 0-3L13.5 2.5a2 2 0 0 1 3 0l5 5a2 2 0 0 1 0 3L12 20Z"/><path d="m8 8 8 8"/></svg><span class="sr-only" data-i18n="eraser">Eraser</span></button><button type="button" data-tool="pick" data-tool-label="picker" aria-label="Picker" data-tooltip="Picker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 22 3-1 10.8-10.8M17 4l3-3 3 3-3 3M13 7l4 4M5 20l-1-3 3-1"/><path d="M17 4 13 8l4 4 4-4"/></svg><span class="sr-only" data-i18n="picker">Picker</span></button><button type="button" data-tool="clone" data-tool-label="clone" aria-label="Clone" data-tooltip="Clone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span class="sr-only" data-i18n="clone">Clone</span></button><button type="button" id="undoBtn" data-tool-label="undo" aria-label="Undo" data-tooltip="Undo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h10a8 8 0 0 1 8 8v2"/><path d="m9 4-6 6 6 6"/></svg><span class="sr-only" data-i18n="undo">Undo</span></button></div>
+      <label id="eraserSizeControl" class="eraser-size-control hidden" for="eraserSize"><span data-i18n="eraserSize">Eraser size</span><select id="eraserSize" aria-label="Eraser size"><option value="1">1 x 1</option><option value="4" selected>4 x 4</option><option value="5">5 x 5</option><option value="6">6 x 6</option><option value="7">7 x 7</option><option value="8">8 x 8</option></select></label>
       <label class="flex"><input type="checkbox" id="stackBlocks"> <span data-i18n="stack">Blokları üst üste koy</span></label><p class="muted" id="toolHelp">Taşı: fareyle veya parmakla sürükleyin.</p><div class="divider"></div><h3 data-i18n="usedAssets">Kullanılan Görseller</h3><div id="usedAssets" class="used-list"></div>
     </aside>
     <div class="editor-center"><div class="editor-toolbar"><span id="editorStatus" class="muted status">80 × 57 · Taşı</span><button type="button" id="zoomOut">−</button><button type="button" id="zoomFit" data-i18n="fit">Sığdır</button><button type="button" id="zoomIn">+</button><label class="flex" style="font-size:12px"><input type="checkbox" id="editorGrid" checked> <span data-i18n="grid">Izgara</span></label><button type="button" class="primary" id="fullscreenBtn" data-i18n="fullscreen">Tam Ekran</button></div>
-      <div id="editorViewport" class="editor-viewport"><div id="editorStage" class="editor-stage"><canvas id="editorCanvas" class="editor-canvas" width="1280" height="960"></canvas><div id="cloneActions" class="clone-actions hidden"><button type="button" id="cloneConfirm">✓</button><button type="button" id="cloneCancel">×</button></div></div></div>
+      <div id="editorViewport" class="editor-viewport"><div id="editorStage" class="editor-stage"><canvas id="editorCanvas" class="editor-canvas" width="1280" height="960"></canvas><div id="eraserCursor" class="eraser-cursor hidden" aria-hidden="true"></div><div id="cloneActions" class="clone-actions hidden"><button type="button" id="cloneConfirm">✓</button><button type="button" id="cloneCancel">×</button></div></div></div>
     </div>
     <aside class="editor-panel assets-panel" id="assetsPanel"><button type="button" id="closeAssets" class="panel-close" data-i18n="close">Close</button><h3 data-i18n="assets">Pixel Worlds Assets</h3><div class="asset-cats" id="assetCats"></div><input type="search" id="assetSearch" placeholder="Görsel ara..." data-i18n-placeholder="search"><div class="asset-grid" id="assetGrid"></div><div class="paging"><button type="button" id="assetPrev">‹</button><span id="assetPage" class="muted">1 / 1</span><button type="button" id="assetNext">›</button></div></aside>
     <div class="editor-dock"><button type="button" id="toolsDock"><span aria-hidden="true">⚒ </span><span data-i18n="tools">Tools</span></button><button type="button" id="assetsDock"><span aria-hidden="true">▦ </span><span data-i18n="assetsShort">Assets</span></button></div>
@@ -347,10 +352,10 @@ const state = {
   selectedAsset:null,tool:'pan',undo:[],stroke:null,gridConvert:true,gridEdit:true,
   category:'blocks',search:'',page:0,zoom:1,viewScale:1,
   pointer:null,pointers:new Map(),pinch:null,cloneSelection:null,cloneDraft:null,
-  panel:null,renderPending:false,previewReady:false
+  panel:null,renderPending:false,previewReady:false,eraserSize:4,eraserPos:null
 };
 
-const uiText = {"tr":{"language":"Dil","appTitle":"Pixel Art & Block Converter","modeLabel":"İşlem Modunu Seç:","modePixel":"Seçenek 1: Otomatik Pixel Art","modeConvert":"Seçenek 2: Blocks + Backgrounds ile Oluştur","modeEdit":"Seçenek 3: Photo Designer (Görsel Düzenle)","modeInspect":"Seçenek 4: Kayıtlı Projeyi İncele (.json)","pixelTitle":"Otomatik Pixel Art","pixelUpload":"1. Dönüştürülecek Fotoğrafı Yükle:","blockWidth":"Genişlik (Blok Sayısı):","blockHeight":"Yükseklik (Blok Sayısı):","outputWidth":"Çıktı Genişliği (px):","outputHint":"Yalnızca genişliği girin; yükseklik otomatik hesaplanır.","generatePixel":"Pixel Art Oluştur","saveImage":"Görseli Kaydet","generatedImage":"Oluşturulan Görsel","convertTitle":"Fotoğrafı Pixel Worlds ile Oluştur","uploadImage":"Fotoğraf Yükle","modeBoth":"Blocks + Backgrounds","modeBackgrounds":"Sadece Backgrounds","modeBlocks":"Sadece Blocks","showGrid":"Izgarayı göster","generateImage":"Görsel Oluştur","downloadPNG":"PNG İndir","downloadJSON":"JSON İndir","editOption3":"Photo Designer’da Düzenle","worldGrid":"Görsel Izgarası","usedAssets":"Kullanılan Görseller","editTitle":"Photo Designer · Görsel Düzenle","newWorld":"Yeni Tasarım","loadJSON":"JSON Yükle","sizes":"Ölçüler","width":"Genişlik","height":"Yükseklik","pngWidth":"PNG Genişliği","apply":"Uygula","close":"Kapat","tools":"Araçlar","move":"Taşı","eraser":"Silgi","picker":"Damlalık","clone":"Klonla","undo":"Geri Al","stack":"Blokları üst üste koy","fit":"Sığdır","grid":"Izgara","fullscreen":"Tam Ekran","exitFullscreen":"Tam Ekrandan Çık","assets":"Pixel Worlds Görselleri","assetsShort":"Görseller","search":"Görsel ara...","inspectUpload":"İncelemek için kayıtlı proje dosyasını (.json) yükleyin:","inspectReport":"📦 Kullanılan Blok Listesi ve Adetleri","madeBy":"Hazırlayan:","categoryBlocks":"Blocks","categoryBackgrounds":"Backgrounds","categoryProps":"Props","categoryWorlds":"Worlds","usedBlock":"Kullanılan Blok:","emptyCell":"Boş hücre","loadImageFirst":"Önce fotoğraf yükleyin.","photoReady":"Fotoğrafı yükleyerek başlayın.","catalogLoading":"Hazır katalog yükleniyor...","catalogReady":"Hazır: {blocks} Blocks + {backgrounds} Backgrounds. Görseller uygulamaya dahil.","prepareAssets":"Dokular hazırlanıyor: {done}/{total}","converting":"Dönüştürülüyor: %{pct}","convertDone":"Tamamlandı: 4.560 hücre. PNG/JSON indirebilir veya Seçenek 3’te düzenleyebilirsiniz.","convertFailed":"Hata: {message}","noProject":"Önce bir dünya oluşturun.","noAssets":"Henüz görsel yok.","inspectorSize":"{cols} × {rows} · {count} farklı görsel","noMatchingAssets":"Hazır bloklar yüklenemedi.","toolPan":"Taşı: basılı tutup her yöne sürükleyin. Bilgisayarda sağ tıkla da taşınır.","toolErase":"Silgi: basılı tutup sürükleyerek hücreleri silin.","toolPick":"Damlalık: dokuyu seçmek için hücreye dokunun.","toolClone":"Klonla: alanı sürükleyip seçin, hedefe dokunun ve ✓ ile onaylayın.","selectedAsset":"{category}: {name}","noTexture":"Görsel bulunamadı.","photoLoaded":"{name} · {w} × {h} yüklendi.","photoLoadFailed":"Fotoğraf okunamadı: {message}","convertingImage":"Fotoğraf dünya ızgarasına dönüştürülüyor...","convertedSummary":"{cols} × {rows} · {count} hazır dokudan seçildi","generateFirst":"Önce Seçenek 2 ile görsel oluşturun.","invalidProject":"JSON proje biçimi veya dünya ölçüleri geçersiz.","exportPngError":"PNG oluşturulamadı.","loadProjectFailed":"JSON yüklenemedi: {message}","inspectFirst":"Önce Seçenek 2 veya 3 ile dünya oluşturun.","emptyMessage":"Bu hücre boş.","worldBackground":"Arka plan: {name}","chooseAsset":"Katalogdan görsel seçip karelere yerleştirin.","brush":"Kalem","newWorldConfirm":"Mevcut tasarımın yerine yeni bir tuval oluşturulsun mu?","fullscreenFailed":"Tam ekran açılamadı: {message}","cloneSelected":"{w} × {h} alan seçildi · Hedefe dokunun","clonePreview":"Klon önizlemesi · sürükleyin · ✓ ile onaylayın","cloneApplied":"Klon yerleştirildi","cloneCanceled":"Klon iptal edildi","paletteBlocks":"Bloklar","paletteBackgrounds":"Arka Planlar","paletteExcluded":"Kaldırılanlar","paletteAvailable":"{count} görsel aktif","paletteRemoved":"{count} görsel kaldırıldı","paletteRestoreAll":"Tümünü geri al","paletteNone":"Bu kategoride görsel yok.","paletteRemTitle":"Bu görseli kullanma","paletteAddTitle":"Görseli tekrar kullan","quotaTitle":"Blok adet terminali (isteğe bağlı)","quotaHint":"Her satıra BlokAdı = adet yazın. Toplam 4560'ı aşamaz. Kalan hücreler diğer aktif görsellerle doldurulur. Blok görseline tıklayarak terminale ekleyebilirsiniz.","quotaPlaceholder":"Blocks/grey_brick = 150\nBackgrounds/blue_glass_tile = 40","quotaEmpty":"Kota tanımlanmadı; etkin görseller otomatik seçilecek.","quotaReady":"{lines} blok için {count}/4560 adet zorunlu, kalan {other} hücre otomatik.","quotaInvalid":"Satır {line}: “{content}” geçersiz. Örnek: Blocks/grey_brick = 150","quotaUnknown":"Satır {line}: “{name}” bulunamadı. Dosya adını veya Blocks/… biçimini kullanın. {suggestions}","quotaAmbiguous":"Satır {line}: “{name}” birden fazla görselle eşleşiyor. Kategori yazın: {suggestions}","quotaDuplicate":"Satır {line}: “{name}” için zaten adet tanımladınız.","quotaWrongCategory":"Satır {line}: “{name}” seçili Blocks/Backgrounds moduna uygun değil.","quotaExcluded":"Satır {line}: “{name}” paletten kaldırılmış. Önce Kaldırılanlar bölümünden geri ekleyin.","quotaOverflow":"İstenen {count} blok, 4560 hücre sınırını aşıyor.","quotaNoFiller":"Kalan {count} hücreyi dolduracak başka etkin blok yok.","quotaMissingTexture":"İstenen görsel yüklenemedi: {name}","quotaStatusRunning":"Kotalar uygulanıyor: {done}/{total}","quotaStatusDone":"Kotalar uygulandı: {count} hücre belirtilen adetlerde; kalan {other} hücre otomatik.","quotaTileAdded":"Terminale “{name} = 1” eklendi.","quotaTileHint":"Blok adını terminale ekle"},"en":{"language":"Language","appTitle":"Pixel Art & Block Converter","modeLabel":"Select Operation Mode:","modePixel":"Option 1: Automatic Pixel Art","modeConvert":"Option 2: Create with Blocks + Backgrounds","modeEdit":"Option 3: Photo Designer (Edit Image)","modeInspect":"Option 4: Inspect Saved Project (.json)","pixelTitle":"Automatic Pixel Art","pixelUpload":"1. Upload Main Image to Convert:","blockWidth":"Width (Block Count):","blockHeight":"Height (Block Count):","outputWidth":"Output Image Width (px):","outputHint":"Like in Paint: enter the width; the height is calculated automatically.","generatePixel":"Generate Pixel Art","saveImage":"Save Image","generatedImage":"Generated Image","convertTitle":"Create with Pixel Worlds","uploadImage":"Upload Image","modeBoth":"Blocks + Backgrounds","modeBackgrounds":"Backgrounds Only","modeBlocks":"Blocks Only","showGrid":"Show Grid","generateImage":"Generate Image","downloadPNG":"Download PNG","downloadJSON":"Download JSON","editOption3":"Edit in Photo Designer","worldGrid":"Photo Grid","usedAssets":"Used Assets","editTitle":"Photo Designer · Edit Image","newWorld":"New Design","loadJSON":"Load JSON","sizes":"Dimensions","width":"Width","height":"Height","pngWidth":"PNG Width","apply":"Apply","close":"Close","tools":"Tools","move":"Move","eraser":"Eraser","picker":"Picker","clone":"Clone","undo":"Undo","stack":"Stack Blocks","fit":"Fit","grid":"Grid","fullscreen":"Fullscreen","exitFullscreen":"Exit Fullscreen","assets":"Pixel Worlds Assets","assetsShort":"Assets","search":"Search assets...","inspectUpload":"Load your previously saved project file (.json) to inspect pixels:","inspectReport":"📦 Used Block List & Quantities","madeBy":"Made By:","categoryBlocks":"Blocks","categoryBackgrounds":"Backgrounds","categoryProps":"Props","categoryWorlds":"Worlds","usedBlock":"Used Block:","emptyCell":"Empty Cell","loadImageFirst":"Please upload a photo first.","photoReady":"Upload a photo to begin.","catalogLoading":"Loading built-in textures...","catalogReady":"Ready: {blocks} Blocks + {backgrounds} Backgrounds. Textures included with the app.","prepareAssets":"Preparing textures: {done}/{total}","converting":"Converting: {pct}%","convertDone":"Done: 4,560 cells. Download PNG/JSON or edit in Option 3.","convertFailed":"Error: {message}","noProject":"Create a world first.","noAssets":"No images placed yet.","inspectorSize":"{cols} × {rows} · {count} unique assets","noMatchingAssets":"Unable to load built-in textures.","toolPan":"Move: drag to pan in any direction. Right-drag also works on PC.","toolErase":"Eraser: hold and drag to erase cells.","toolPick":"Picker: tap a cell to select its texture.","toolClone":"Clone: drag to select an area, tap its destination and confirm with ✓.","selectedAsset":"{category}: {name}","noTexture":"No texture found.","photoLoaded":"{name} · {w} × {h} loaded.","photoLoadFailed":"Unable to read photo: {message}","convertingImage":"Converting photo to world grid...","convertedSummary":"{cols} × {rows} · selected from {count} available textures","generateFirst":"Generate an image in Option 2 first.","invalidProject":"Invalid JSON project format or world dimensions.","exportPngError":"Unable to export PNG.","loadProjectFailed":"Unable to load JSON: {message}","inspectFirst":"Create a world in Option 2 or 3 first.","emptyMessage":"This cell is empty.","worldBackground":"Background: {name}","chooseAsset":"Choose an asset from the catalog and place it in the grid.","brush":"Pencil","newWorldConfirm":"Replace the current design with a new canvas?","fullscreenFailed":"Unable to enter fullscreen: {message}","cloneSelected":"Selected {w} × {h} cells. Tap the destination.","clonePreview":"Clone preview · drag to position · confirm with ✓","cloneApplied":"Clone placed","cloneCanceled":"Clone canceled","paletteBlocks":"Blocks","paletteBackgrounds":"Backgrounds","paletteExcluded":"Removed","paletteAvailable":"{count} active textures","paletteRemoved":"{count} excluded textures","paletteRestoreAll":"Restore all","paletteNone":"No textures in this category.","paletteRemTitle":"Exclude this texture","paletteAddTitle":"Use this texture again","quotaTitle":"Material quantity terminal (optional)","quotaHint":"Enter one asset per line: AssetName = quantity. Total must not exceed 4560. Remaining cells use other active textures. Click a palette texture to insert its name.","quotaPlaceholder":"Blocks/grey_brick = 150\nBackgrounds/blue_glass_tile = 40","quotaEmpty":"No quotas entered; active textures will be selected automatically.","quotaReady":"{lines} textures fixed at {count}/4560 cells; {other} cells filled automatically.","quotaInvalid":"Line {line}: “{content}” is invalid. Example: Blocks/grey_brick = 150","quotaUnknown":"Line {line}: “{name}” not found. Use a file name or Blocks/… format. {suggestions}","quotaAmbiguous":"Line {line}: “{name}” matches multiple assets. Specify category: {suggestions}","quotaDuplicate":"Line {line}: quantity already set for “{name}”.","quotaWrongCategory":"Line {line}: “{name}” is not allowed in the selected Blocks/Backgrounds mode.","quotaExcluded":"Line {line}: “{name}” was removed from the palette. Restore it first.","quotaOverflow":"Requested {count} textures exceed the 4560-cell limit.","quotaNoFiller":"No other active textures can fill the remaining {count} cells.","quotaMissingTexture":"Requested texture failed to load: {name}","quotaStatusRunning":"Placing fixed quantities: {done}/{total}","quotaStatusDone":"Quantities fulfilled: {count} fixed cells; {other} cells filled automatically.","quotaTileAdded":"Added “{name} = 1” to the terminal.","quotaTileHint":"Add this texture to the quantity terminal"}};
+const uiText = {"tr":{"language":"Dil","appTitle":"Pixel Art & Block Converter","modeLabel":"İşlem Modunu Seç:","modePixel":"Seçenek 1: Otomatik Pixel Art","modeConvert":"Seçenek 2: Blocks + Backgrounds ile Oluştur","modeEdit":"Seçenek 3: Photo Designer (Görsel Düzenle)","modeInspect":"Seçenek 4: Kayıtlı Projeyi İncele (.json)","pixelTitle":"Otomatik Pixel Art","pixelUpload":"1. Dönüştürülecek Fotoğrafı Yükle:","blockWidth":"Genişlik (Blok Sayısı):","blockHeight":"Yükseklik (Blok Sayısı):","outputWidth":"Çıktı Genişliği (px):","outputHint":"Yalnızca genişliği girin; yükseklik otomatik hesaplanır.","generatePixel":"Pixel Art Oluştur","saveImage":"Görseli Kaydet","generatedImage":"Oluşturulan Görsel","convertTitle":"Fotoğrafı Pixel Worlds ile Oluştur","uploadImage":"Fotoğraf Yükle","modeBoth":"Blocks + Backgrounds","modeBackgrounds":"Sadece Backgrounds","modeBlocks":"Sadece Blocks","showGrid":"Izgarayı göster","generateImage":"Görsel Oluştur","downloadPNG":"PNG İndir","downloadJSON":"JSON İndir","editOption3":"Photo Designer’da Düzenle","worldGrid":"Görsel Izgarası","usedAssets":"Kullanılan Görseller","editTitle":"Photo Designer · Görsel Düzenle","newWorld":"Yeni Tasarım","loadJSON":"JSON Yükle","sizes":"Ölçüler","width":"Genişlik","height":"Yükseklik","pngWidth":"PNG Genişliği","apply":"Uygula","close":"Kapat","tools":"Araçlar","move":"Taşı","eraser":"Silgi","picker":"Damlalık","clone":"Klonla","undo":"Geri Al","stack":"Blokları üst üste koy","fit":"Sığdır","grid":"Izgara","fullscreen":"Tam Ekran","exitFullscreen":"Tam Ekrandan Çık","assets":"Pixel Worlds Görselleri","assetsShort":"Görseller","search":"Görsel ara...","inspectUpload":"İncelemek için kayıtlı proje dosyasını (.json) yükleyin:","inspectReport":"📦 Kullanılan Blok Listesi ve Adetleri","madeBy":"Hazırlayan:","categoryBlocks":"Blocks","categoryBackgrounds":"Backgrounds","categoryProps":"Props","categoryWorlds":"Worlds","usedBlock":"Kullanılan Blok:","emptyCell":"Boş hücre","loadImageFirst":"Önce fotoğraf yükleyin.","photoReady":"Fotoğrafı yükleyerek başlayın.","catalogLoading":"Hazır katalog yükleniyor...","catalogReady":"Hazır: {blocks} Blocks + {backgrounds} Backgrounds. Görseller uygulamaya dahil.","prepareAssets":"Dokular hazırlanıyor: {done}/{total}","converting":"Dönüştürülüyor: %{pct}","convertDone":"Tamamlandı: 4.560 hücre. PNG/JSON indirebilir veya Seçenek 3’te düzenleyebilirsiniz.","convertFailed":"Hata: {message}","noProject":"Önce bir dünya oluşturun.","noAssets":"Henüz görsel yok.","inspectorSize":"{cols} × {rows} · {count} farklı görsel","noMatchingAssets":"Hazır bloklar yüklenemedi.","toolPan":"Taşı: basılı tutup her yöne sürükleyin. Bilgisayarda sağ tıkla da taşınır.","toolErase":"Silgi: basılı tutup sürükleyerek hücreleri silin.","eraserSize":"Silgi boyutu","toolPick":"Damlalık: dokuyu seçmek için hücreye dokunun.","toolClone":"Klonla: alanı sürükleyip seçin, hedefe dokunun ve ✓ ile onaylayın.","selectedAsset":"{category}: {name}","noTexture":"Görsel bulunamadı.","photoLoaded":"{name} · {w} × {h} yüklendi.","photoLoadFailed":"Fotoğraf okunamadı: {message}","convertingImage":"Fotoğraf dünya ızgarasına dönüştürülüyor...","convertedSummary":"{cols} × {rows} · {count} hazır dokudan seçildi","generateFirst":"Önce Seçenek 2 ile görsel oluşturun.","invalidProject":"JSON proje biçimi veya dünya ölçüleri geçersiz.","exportPngError":"PNG oluşturulamadı.","loadProjectFailed":"JSON yüklenemedi: {message}","inspectFirst":"Önce Seçenek 2 veya 3 ile dünya oluşturun.","emptyMessage":"Bu hücre boş.","worldBackground":"Arka plan: {name}","chooseAsset":"Katalogdan görsel seçip karelere yerleştirin.","brush":"Kalem","newWorldConfirm":"Mevcut tasarımın yerine yeni bir tuval oluşturulsun mu?","fullscreenFailed":"Tam ekran açılamadı: {message}","cloneSelected":"{w} × {h} alan seçildi · Hedefe dokunun","clonePreview":"Klon önizlemesi · sürükleyin · ✓ ile onaylayın","cloneApplied":"Klon yerleştirildi","cloneCanceled":"Klon iptal edildi","paletteBlocks":"Bloklar","paletteBackgrounds":"Arka Planlar","paletteExcluded":"Kaldırılanlar","paletteAvailable":"{count} görsel aktif","paletteRemoved":"{count} görsel kaldırıldı","paletteRestoreAll":"Tümünü geri al","paletteNone":"Bu kategoride görsel yok.","paletteRemTitle":"Bu görseli kullanma","paletteAddTitle":"Görseli tekrar kullan","quotaTitle":"Blok adet terminali (isteğe bağlı)","quotaHint":"Her satıra BlokAdı = adet yazın. Toplam 4560'ı aşamaz. Kalan hücreler diğer aktif görsellerle doldurulur. Blok görseline tıklayarak terminale ekleyebilirsiniz.","quotaPlaceholder":"Blocks/grey_brick = 150\nBackgrounds/blue_glass_tile = 40","quotaEmpty":"Kota tanımlanmadı; etkin görseller otomatik seçilecek.","quotaReady":"{lines} blok için {count}/4560 adet zorunlu, kalan {other} hücre otomatik.","quotaInvalid":"Satır {line}: “{content}” geçersiz. Örnek: Blocks/grey_brick = 150","quotaUnknown":"Satır {line}: “{name}” bulunamadı. Dosya adını veya Blocks/… biçimini kullanın. {suggestions}","quotaAmbiguous":"Satır {line}: “{name}” birden fazla görselle eşleşiyor. Kategori yazın: {suggestions}","quotaDuplicate":"Satır {line}: “{name}” için zaten adet tanımladınız.","quotaWrongCategory":"Satır {line}: “{name}” seçili Blocks/Backgrounds moduna uygun değil.","quotaExcluded":"Satır {line}: “{name}” paletten kaldırılmış. Önce Kaldırılanlar bölümünden geri ekleyin.","quotaOverflow":"İstenen {count} blok, 4560 hücre sınırını aşıyor.","quotaNoFiller":"Kalan {count} hücreyi dolduracak başka etkin blok yok.","quotaMissingTexture":"İstenen görsel yüklenemedi: {name}","quotaStatusRunning":"Kotalar uygulanıyor: {done}/{total}","quotaStatusDone":"Kotalar uygulandı: {count} hücre belirtilen adetlerde; kalan {other} hücre otomatik.","quotaTileAdded":"Terminale “{name} = 1” eklendi.","quotaTileHint":"Blok adını terminale ekle"},"en":{"language":"Language","appTitle":"Pixel Art & Block Converter","modeLabel":"Select Operation Mode:","modePixel":"Option 1: Automatic Pixel Art","modeConvert":"Option 2: Create with Blocks + Backgrounds","modeEdit":"Option 3: Photo Designer (Edit Image)","modeInspect":"Option 4: Inspect Saved Project (.json)","pixelTitle":"Automatic Pixel Art","pixelUpload":"1. Upload Main Image to Convert:","blockWidth":"Width (Block Count):","blockHeight":"Height (Block Count):","outputWidth":"Output Image Width (px):","outputHint":"Like in Paint: enter the width; the height is calculated automatically.","generatePixel":"Generate Pixel Art","saveImage":"Save Image","generatedImage":"Generated Image","convertTitle":"Create with Pixel Worlds","uploadImage":"Upload Image","modeBoth":"Blocks + Backgrounds","modeBackgrounds":"Backgrounds Only","modeBlocks":"Blocks Only","showGrid":"Show Grid","generateImage":"Generate Image","downloadPNG":"Download PNG","downloadJSON":"Download JSON","editOption3":"Edit in Photo Designer","worldGrid":"Photo Grid","usedAssets":"Used Assets","editTitle":"Photo Designer · Edit Image","newWorld":"New Design","loadJSON":"Load JSON","sizes":"Dimensions","width":"Width","height":"Height","pngWidth":"PNG Width","apply":"Apply","close":"Close","tools":"Tools","move":"Move","eraser":"Eraser","picker":"Picker","clone":"Clone","undo":"Undo","stack":"Stack Blocks","fit":"Fit","grid":"Grid","fullscreen":"Fullscreen","exitFullscreen":"Exit Fullscreen","assets":"Pixel Worlds Assets","assetsShort":"Assets","search":"Search assets...","inspectUpload":"Load your previously saved project file (.json) to inspect pixels:","inspectReport":"📦 Used Block List & Quantities","madeBy":"Made By:","categoryBlocks":"Blocks","categoryBackgrounds":"Backgrounds","categoryProps":"Props","categoryWorlds":"Worlds","usedBlock":"Used Block:","emptyCell":"Empty Cell","loadImageFirst":"Please upload a photo first.","photoReady":"Upload a photo to begin.","catalogLoading":"Loading built-in textures...","catalogReady":"Ready: {blocks} Blocks + {backgrounds} Backgrounds. Textures included with the app.","prepareAssets":"Preparing textures: {done}/{total}","converting":"Converting: {pct}%","convertDone":"Done: 4,560 cells. Download PNG/JSON or edit in Option 3.","convertFailed":"Error: {message}","noProject":"Create a world first.","noAssets":"No images placed yet.","inspectorSize":"{cols} × {rows} · {count} unique assets","noMatchingAssets":"Unable to load built-in textures.","toolPan":"Move: drag to pan in any direction. Right-drag also works on PC.","toolErase":"Eraser: hold and drag to erase cells.","eraserSize":"Eraser size","toolPick":"Picker: tap a cell to select its texture.","toolClone":"Clone: drag to select an area, tap its destination and confirm with ✓.","selectedAsset":"{category}: {name}","noTexture":"No texture found.","photoLoaded":"{name} · {w} × {h} loaded.","photoLoadFailed":"Unable to read photo: {message}","convertingImage":"Converting photo to world grid...","convertedSummary":"{cols} × {rows} · selected from {count} available textures","generateFirst":"Generate an image in Option 2 first.","invalidProject":"Invalid JSON project format or world dimensions.","exportPngError":"Unable to export PNG.","loadProjectFailed":"Unable to load JSON: {message}","inspectFirst":"Create a world in Option 2 or 3 first.","emptyMessage":"This cell is empty.","worldBackground":"Background: {name}","chooseAsset":"Choose an asset from the catalog and place it in the grid.","brush":"Pencil","newWorldConfirm":"Replace the current design with a new canvas?","fullscreenFailed":"Unable to enter fullscreen: {message}","cloneSelected":"Selected {w} × {h} cells. Tap the destination.","clonePreview":"Clone preview · drag to position · confirm with ✓","cloneApplied":"Clone placed","cloneCanceled":"Clone canceled","paletteBlocks":"Blocks","paletteBackgrounds":"Backgrounds","paletteExcluded":"Removed","paletteAvailable":"{count} active textures","paletteRemoved":"{count} excluded textures","paletteRestoreAll":"Restore all","paletteNone":"No textures in this category.","paletteRemTitle":"Exclude this texture","paletteAddTitle":"Use this texture again","quotaTitle":"Material quantity terminal (optional)","quotaHint":"Enter one asset per line: AssetName = quantity. Total must not exceed 4560. Remaining cells use other active textures. Click a palette texture to insert its name.","quotaPlaceholder":"Blocks/grey_brick = 150\nBackgrounds/blue_glass_tile = 40","quotaEmpty":"No quotas entered; active textures will be selected automatically.","quotaReady":"{lines} textures fixed at {count}/4560 cells; {other} cells filled automatically.","quotaInvalid":"Line {line}: “{content}” is invalid. Example: Blocks/grey_brick = 150","quotaUnknown":"Line {line}: “{name}” not found. Use a file name or Blocks/… format. {suggestions}","quotaAmbiguous":"Line {line}: “{name}” matches multiple assets. Specify category: {suggestions}","quotaDuplicate":"Line {line}: quantity already set for “{name}”.","quotaWrongCategory":"Line {line}: “{name}” is not allowed in the selected Blocks/Backgrounds mode.","quotaExcluded":"Line {line}: “{name}” was removed from the palette. Restore it first.","quotaOverflow":"Requested {count} textures exceed the 4560-cell limit.","quotaNoFiller":"No other active textures can fill the remaining {count} cells.","quotaMissingTexture":"Requested texture failed to load: {name}","quotaStatusRunning":"Placing fixed quantities: {done}/{total}","quotaStatusDone":"Quantities fulfilled: {count} fixed cells; {other} cells filled automatically.","quotaTileAdded":"Added “{name} = 1” to the terminal.","quotaTileHint":"Add this texture to the quantity terminal"}};
 let language = 'en';
 function tr(key, vars={}){
   return (uiText[language][key] || uiText.en[key] || key).replace(/\{(\w+)\}/g, (_,name)=>String(vars[name]??''));
@@ -368,6 +373,7 @@ function applyLanguage(){
   updateQuotaPreview();
   const help={pan:'toolPan',erase:'toolErase',pick:'toolPick',clone:'toolClone'};
   $('toolHelp').textContent=tr(help[state.tool]||'chooseAsset');
+  $('eraserSizeControl').classList.toggle('hidden',state.tool!=='erase');
   if(state.mode==='edit'){updateStatus();syncEditorFullscreenLabel();}
 }
 $('languageSelect').addEventListener('change',e=>{language=e.target.value;applyLanguage()});
@@ -614,8 +620,9 @@ function queueRender(){
   state.renderPending=true;
   requestAnimationFrame(()=>{
     state.renderPending=false;
-    if(state.model){renderWorld($('convertCanvas'),state.model,state.gridConvert);renderWorld($('editorCanvas'),state.model,state.gridEdit,true)}
-    if(state.inspectModel)renderLegacyInspector($('inspectCanvas'),state.inspectModel);
+    if(state.model&&state.mode==='convert')renderWorld($('convertCanvas'),state.model,state.gridConvert);
+    if(state.model&&state.mode==='edit')renderWorld($('editorCanvas'),state.model,state.gridEdit,true);
+    if(state.inspectModel&&state.mode==='inspect')renderLegacyInspector($('inspectCanvas'),state.inspectModel);
     positionCloneActions();
   });
 }
@@ -1014,7 +1021,9 @@ function selectAsset(asset){
     if(!state.model)state.model=makeModel();
     state.model.world=asset;updateStatus(tr('worldBackground',{name:asset.name}));queueRender();
   }else{
-    state.tool='paint';state.cloneDraft=null;state.cloneSelection=null;updateStatus(`${labels[asset.category]}: ${asset.name}`);
+    state.tool='paint';state.cloneDraft=null;state.cloneSelection=null;state.eraserPos=null;
+    $('eraserSizeControl').classList.add('hidden');$('eraserCursor').classList.add('hidden');
+    updateStatus(`${labels[asset.category]}: ${asset.name}`);
   }
   for(const btn of document.querySelectorAll('[data-tool]'))btn.classList.toggle('active',btn.dataset.tool===state.tool);
   renderCatalog();if(isMobile())closePanels();queueRender();
@@ -1024,11 +1033,14 @@ function chooseTool(tool){
   for(const b of document.querySelectorAll('[data-tool]'))b.classList.toggle('active',b.dataset.tool===tool);
   const help={pan:tr('toolPan'),erase:tr('toolErase'),pick:tr('toolPick'),clone:tr('toolClone')};
   $('toolHelp').textContent=help[tool]||tr('chooseAsset');
+  $('eraserSizeControl').classList.toggle('hidden',tool!=='erase');
+  if(tool!=='erase'){state.eraserPos=null;$('eraserCursor').classList.add('hidden');}
   updateStatus();queueRender();
   if(isMobile())closePanels();
 }
 for(const b of document.querySelectorAll('[data-tool]'))b.onclick=()=>chooseTool(b.dataset.tool);
 $('stackBlocks').onchange=e=>{if(state.model)state.model.stack=e.target.checked};
+$('eraserSize').onchange=e=>{state.eraserSize=Number(e.target.value);positionEraserCursor(state.eraserPos);};
 function syncSizeInputs(){
   if(!state.model)return;
   $('editCols').value=state.model.cols;$('editRows').value=state.model.rows;
@@ -1069,7 +1081,7 @@ function fitEditor(center=false){
   stage.style.width=`${sw}px`;stage.style.height=`${sh}px`;
   editCanvas.style.width=`${w}px`;editCanvas.style.height=`${h}px`;
   editCanvas.style.left=`${Math.round((sw-w)/2)}px`;editCanvas.style.top=`${Math.round((sh-h)/2)}px`;
-  positionCloneActions();
+  positionCloneActions();positionEraserCursor(state.eraserPos);
   if(center)requestAnimationFrame(()=>{
     viewport.scrollLeft=Math.max(0,(viewport.scrollWidth-viewport.clientWidth)/2);
     viewport.scrollTop=Math.max(0,(viewport.scrollHeight-viewport.clientHeight)/2);
@@ -1120,6 +1132,71 @@ viewport.addEventListener('contextmenu',e=>e.preventDefault());
 viewport.addEventListener('wheel',e=>{
   if(state.mode!=='edit')return;e.preventDefault();zoomTo(state.zoom*(e.deltaY<0?1.12:1/1.12));
 },{passive:false});
+
+// Repaint edited cells only while dragging. Full canvases are refreshed once per finished stroke.
+const dirtyEditorCells=new Set();
+let dirtyEditorScheduled=false;
+function markEditorCellDirty(x,y){
+  dirtyEditorCells.add(`${x},${y}`);
+  if(dirtyEditorScheduled)return;
+  dirtyEditorScheduled=true;
+  requestAnimationFrame(()=>{
+    dirtyEditorScheduled=false;
+    if(!dirtyEditorCells.size)return;
+    const cells=[...dirtyEditorCells];dirtyEditorCells.clear();
+    const canvas=$('editorCanvas'),m=state.model;
+    if(state.mode!=='edit'||!m)return;
+    const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+    const bg=m.world?.src?readyImage(m.world.src):null;
+    const bgScale=bg?Math.max(canvas.width/bg.naturalWidth,canvas.height/bg.naturalHeight):1;
+    const croppedW=bg?canvas.width/bgScale:0,croppedH=bg?canvas.height/bgScale:0;
+    const sx=bg?(bg.naturalWidth-croppedW)/2:0,sy=bg?(bg.naturalHeight-croppedH)/2:0;
+    const lineX=Math.max(1,Math.round(canvas.width/(canvas.clientWidth||canvas.width)));
+    const lineY=Math.max(1,Math.round(canvas.height/(canvas.clientHeight||canvas.height)));
+    for(const key of cells){
+      const [x,y]=key.split(',').map(Number);
+      if(!indexOfCell(m,x,y))continue;
+      const r=cellRect(canvas,m,x,y);
+      ctx.save();ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();
+      ctx.clearRect(r.x,r.y,r.w,r.h);
+      if(bg){
+        ctx.drawImage(bg,sx+r.x/canvas.width*croppedW,sy+r.y/canvas.height*croppedH,
+          r.w/canvas.width*croppedW,r.h/canvas.height*croppedH,r.x,r.y,r.w,r.h);
+      }else{ctx.fillStyle='#111a2e';ctx.fillRect(r.x,r.y,r.w,r.h);}
+      if(m.map[y][x].length)drawCell(ctx,canvas,m,m.map[y][x],x,y);
+      if(state.gridEdit){
+        ctx.fillStyle='rgba(255,255,255,.27)';
+        for(const xx of [x,x+1])if(xx>0&&xx<m.cols){
+          const px=Math.round(xx*canvas.width/m.cols)-Math.floor(lineX/2);
+          ctx.fillRect(px,r.y,lineX,r.h);
+        }
+        for(const yy of [y,y+1])if(yy>0&&yy<m.rows){
+          const py=Math.round(yy*canvas.height/m.rows)-Math.floor(lineY/2);
+          ctx.fillRect(r.x,py,r.w,lineY);
+        }
+      }
+      ctx.restore();
+    }
+  });
+}
+function eraserArea(pos){
+  const n=state.eraserSize;
+  const x0=Math.max(0,pos.x-Math.floor((n-1)/2)),y0=Math.max(0,pos.y-Math.floor((n-1)/2));
+  return {x0,y0,x1:Math.min(state.model.cols,x0+n),y1:Math.min(state.model.rows,y0+n)};
+}
+function positionEraserCursor(pos){
+  const marker=$('eraserCursor'),m=state.model;
+  if(!pos||!m||state.tool!=='erase'||state.mode!=='edit'){
+    marker.classList.add('hidden');return;
+  }
+  const area=eraserArea(pos),w=editCanvas.clientWidth/m.cols,h=editCanvas.clientHeight/m.rows;
+  marker.style.left=`${editCanvas.offsetLeft+area.x0*w}px`;
+  marker.style.top=`${editCanvas.offsetTop+area.y0*h}px`;
+  marker.style.width=`${(area.x1-area.x0)*w}px`;
+  marker.style.height=`${(area.y1-area.y0)*h}px`;
+  marker.classList.remove('hidden');
+}
+
 function beginStroke(){state.stroke={before:new Map(),seen:new Set()}}
 function recordCell(x,y){
   const key=`${x},${y}`;
@@ -1134,26 +1211,39 @@ function finishStroke(){
   state.stroke=null;
 }
 function paintAt(pos,initial=false){
-  const model=state.model;if(!model||!pos||!indexOfCell(model,pos.x,pos.y))return;
-  const key=`${pos.x},${pos.y}`;
-  if(state.stroke.seen.has(key))return;state.stroke.seen.add(key);
-  const cell=model.map[pos.y][pos.x];
+  const model=state.model;if(!model||!pos||!indexOfCell(model,pos.x,pos.y)||!state.stroke)return;
   if(state.tool==='erase'){
-    if(!cell.length)return;
-    recordCell(pos.x,pos.y);cell.pop();queueRender();return;
+    const a=eraserArea(pos);
+    for(let y=a.y0;y<a.y1;y++)for(let x=a.x0;x<a.x1;x++){
+      const key=`${x},${y}`;
+      if(state.stroke.seen.has(key))continue;
+      state.stroke.seen.add(key);
+      const cell=model.map[y][x];
+      if(!cell.length)continue;
+      recordCell(x,y);cell.pop();markEditorCellDirty(x,y);
+    }
+    return;
   }
   if(state.tool!=='paint'||!state.selectedAsset)return;
-  const asset=state.selectedAsset;
+  const key=`${pos.x},${pos.y}`;
+  if(state.stroke.seen.has(key))return;
+  state.stroke.seen.add(key);
+  const cell=model.map[pos.y][pos.x],asset=state.selectedAsset;
   if(asset.category==='worlds')return;
   const existing=cell.findIndex(i=>i.category===asset.category);
   const isSame=existing>=0&&cell[existing].src===asset.src;
   if(!model.stack&&initial&&isSame){
-    recordCell(pos.x,pos.y);cell.splice(existing,1);queueRender();return;
+    recordCell(pos.x,pos.y);cell.splice(existing,1);markEditorCellDirty(pos.x,pos.y);return;
   }
   if(!model.stack&&isSame)return;
   recordCell(pos.x,pos.y);
   if(!model.stack){for(let i=cell.length-1;i>=0;i--)if(cell[i].category===asset.category)cell.splice(i,1)}
-  cell.push({...asset});queueRender();
+  cell.push({...asset});markEditorCellDirty(pos.x,pos.y);
+}
+function strokeBetween(a,b){
+  const steps=Math.max(Math.abs(b.x-a.x),Math.abs(b.y-a.y));
+  if(!steps){paintAt(b,false);return;}
+  for(let i=1;i<=steps;i++)paintAt({x:Math.round(a.x+(b.x-a.x)*i/steps),y:Math.round(a.y+(b.y-a.y)*i/steps)},false);
 }
 function chooseFromCell(pos){
   if(!pos||!state.model)return;
@@ -1216,18 +1306,22 @@ $('cloneConfirm').onclick=()=>{
 function dist(p,q){return Math.hypot(p.x-q.x,p.y-q.y)}
 function middle(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
 viewport.addEventListener('pointerdown',e=>{
-  if(state.mode!=='edit')return;
-  if(e.target.closest?.('button'))return;
-  e.preventDefault();viewport.setPointerCapture(e.pointerId);
+  if(state.mode!=='edit'||e.target.closest?.('button'))return;
+  if(e.pointerType==='mouse'&&state.pointer&&state.pointer.id!==e.pointerId)finishPointer({pointerId:state.pointer.id});
+  e.preventDefault();
+  try{viewport.setPointerCapture(e.pointerId)}catch(_){}
   state.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(state.pointers.size>=2){
-    const [a,b]=[...state.pointers.values()];state.pinch={dist:Math.max(10,dist(a,b)),zoom:state.zoom,center:middle(a,b),scrollX:viewport.scrollLeft,scrollY:viewport.scrollTop};
-    if(state.stroke)finishStroke();state.pointer=null;return;
+    const [a,b]=[...state.pointers.values()];
+    state.pinch={dist:Math.max(10,dist(a,b)),zoom:state.zoom,center:middle(a,b),scrollX:viewport.scrollLeft,scrollY:viewport.scrollTop};
+    if(state.stroke)finishStroke();
+    state.pointer=null;viewport.classList.remove('pan');return;
   }
   const pos=gridCellFromEvent(e,editCanvas,state.model);
   const kind=e.button===2||state.tool==='pan'?'pan':state.tool;
-  const base={id:e.pointerId,kind,startX:e.clientX,startY:e.clientY,startScrollLeft:viewport.scrollLeft,startScrollTop:viewport.scrollTop,start:pos,last:pos,
-    draft:state.cloneDraft?{...state.cloneDraft}:null};
+  const base={id:e.pointerId,button:e.button,pointerType:e.pointerType,kind,
+    startX:e.clientX,startY:e.clientY,startScrollLeft:viewport.scrollLeft,startScrollTop:viewport.scrollTop,
+    start:pos,last:pos,draft:state.cloneDraft?{...state.cloneDraft}:null};
   if(kind==='pan'){viewport.classList.add('pan');state.pointer=base;return}
   if(!pos)return;
   if(kind==='clone'){
@@ -1238,10 +1332,20 @@ viewport.addEventListener('pointerdown',e=>{
     }else if(state.cloneSelection){base.kind='placeClone';setCloneDraft(pos)}
     else {base.kind='selectClone';state.cloneStart=pos}
   }else if(kind==='pick'){chooseFromCell(pos);base.kind='pick'}
-  else{beginStroke();base.kind=state.tool==='erase'?'erase':'paint';paintAt(pos,true)}
+  else{
+    beginStroke();base.kind=state.tool==='erase'?'erase':'paint';paintAt(pos,true);
+    if(base.kind==='erase'){state.eraserPos=pos;positionEraserCursor(pos)}
+  }
   state.pointer=base;
 });
 viewport.addEventListener('pointermove',e=>{
+  const p=state.pointer;
+  if(p&&p.id===e.pointerId&&e.pointerType==='mouse'){
+    const required=p.button===2?2:1;
+    if(!(e.buttons&required)){finishPointer(e);return}
+  }
+  const hover=gridCellFromEvent(e,editCanvas,state.model);
+  if(state.tool==='erase'&&!state.pinch){state.eraserPos=hover;positionEraserCursor(hover)}
   if(!state.pointers.has(e.pointerId))return;
   state.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(state.pinch&&state.pointers.size>=2){
@@ -1253,31 +1357,56 @@ viewport.addEventListener('pointermove',e=>{
     viewport.scrollTop=state.pinch.scrollY-(c.y-state.pinch.center.y);
     return;
   }
-  const p=state.pointer;if(!p||p.id!==e.pointerId)return;
-  e.preventDefault();const pos=gridCellFromEvent(e,editCanvas,state.model);
+  if(!p||p.id!==e.pointerId)return;
+  e.preventDefault();
   if(p.kind==='pan'){
     viewport.scrollLeft=p.startScrollLeft-(e.clientX-p.startX);
     viewport.scrollTop=p.startScrollTop-(e.clientY-p.startY);
-  }else if(p.kind==='paint'||p.kind==='erase'){
-    if(pos){paintAt(pos,false);p.last=pos}
-  }else if(p.kind==='selectClone'){
-    if(pos){p.last=pos;setCloneSelection(p.start,pos)}
-  }else if(p.kind==='moveClone'&&pos){
-    setCloneDraft({x:p.draft.x+pos.x-p.start.x,y:p.draft.y+pos.y-p.start.y});
+  }else if((p.kind==='paint'||p.kind==='erase')&&hover){
+    if(p.last)strokeBetween(p.last,hover);
+    else paintAt(hover,false);
+    p.last=hover;
+  }else if(p.kind==='selectClone'&&hover){
+    p.last=hover;setCloneSelection(p.start,hover);
+  }else if(p.kind==='moveClone'&&hover){
+    setCloneDraft({x:p.draft.x+hover.x-p.start.x,y:p.draft.y+hover.y-p.start.y});
   }
 });
 function finishPointer(e){
   state.pointers.delete(e.pointerId);
   if(state.pointers.size<2)state.pinch=null;
   const p=state.pointer;
-  if(!p||p.id!==e.pointerId)return;
-  if((p.kind==='paint'||p.kind==='erase')&&state.stroke)finishStroke();
-  if(p.kind==='selectClone'&&p.start&&!state.cloneSelection)setCloneSelection(p.start,p.last||p.start);
-  if(p.kind==='pan')viewport.classList.remove('pan');
-  state.pointer=null;queueRender();
+  if(p&&p.id===e.pointerId){
+    state.pointer=null;
+    if((p.kind==='paint'||p.kind==='erase')&&state.stroke)finishStroke();
+    if(p.kind==='selectClone'&&p.start&&!state.cloneSelection)setCloneSelection(p.start,p.last||p.start);
+    if(p.kind==='pan')viewport.classList.remove('pan');
+    if((p.kind==='paint'||p.kind==='erase'))queueRender();
+  }
+  if(viewport.hasPointerCapture?.(e.pointerId)){
+    try{viewport.releasePointerCapture(e.pointerId)}catch(_){}
+  }
+  if(e.pointerType==='touch'){state.eraserPos=null;positionEraserCursor(null)}
 }
 viewport.addEventListener('pointerup',finishPointer);
 viewport.addEventListener('pointercancel',finishPointer);
+viewport.addEventListener('lostpointercapture',e=>{if(state.pointer?.id===e.pointerId)finishPointer(e)});
+viewport.addEventListener('pointerleave',e=>{
+  if(!state.pointer){state.eraserPos=null;positionEraserCursor(null)}
+});
+// Some mouse button combinations do not emit a pointerup until all buttons are released.
+window.addEventListener('mouseup',e=>{
+  const p=state.pointer;
+  if(p?.pointerType==='mouse'&&p.button===e.button)finishPointer({pointerId:p.id,pointerType:'mouse'});
+});
+function cancelEditorGesture(){
+  if(state.pointer)finishPointer({pointerId:state.pointer.id});
+  else if(state.stroke){finishStroke();queueRender()}
+  state.pointers.clear();state.pinch=null;
+  viewport.classList.remove('pan');state.eraserPos=null;positionEraserCursor(null);
+}
+window.addEventListener('blur',cancelEditorGesture);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelEditorGesture()});
 
 // Startup: the file list is embedded to avoid empty catalogs when a separate manifest is missing.
 renderOption2Palette();
