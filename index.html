@@ -339,47 +339,14 @@ body.editor-immersive #editorShell .editor-center{min-height:0;height:100%}
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-#page-inspect #inspectOptions { display: flex !important; align-items: center; gap: 10px; flex-wrap: wrap; }
-#page-inspect #inspectOptions .inspect-grid-toggle { margin-right: auto; }
-#page-inspect #inspectFullscreenBtn { margin-left: auto; white-space: nowrap; }
-#page-inspect .inspector-photo-block:fullscreen,
-body.inspect-fullscreen-mode #page-inspect .inspector-photo-block.inspect-immersive {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 99999 !important;
-  margin: 0 !important;
-  padding: 10px !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  max-width: none !important;
-  background: var(--bg) !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  border-radius: 0 !important;
-}
-#page-inspect .inspector-photo-block:fullscreen #inspectViewport,
-body.inspect-fullscreen-mode #page-inspect .inspector-photo-block.inspect-immersive #inspectViewport {
-  flex: 1 1 auto;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-}
-#page-inspect .inspector-photo-block:fullscreen #inspectOptions,
-body.inspect-fullscreen-mode #page-inspect .inspector-photo-block.inspect-immersive #inspectOptions {
-  padding-right: 4px;
-}
+#page-inspect #inspectOptions { display: flex !important; }
 @media (max-width: 780px) {
-  #page-inspect #inspectFullscreenBtn { order: 3; margin-left: 0; }
   #page-inspect #inspectViewport { height: clamp(310px, 57dvh, 560px) !important; }
   #page-inspect #inspectHighlight { border-width: 2px; }
 }
 @media (orientation: landscape) and (max-height: 550px) {
   #page-inspect #inspectViewport { height: 74dvh !important; }
 }
-</style>
-<style id="nativeTextureQuality">
-#page-convert #convertCanvas, #page-edit #editorCanvas, #page-inspect #inspectCanvas { image-rendering: pixelated !important; }
 </style>
 </head>
 <body class="mode-pixel">
@@ -477,7 +444,7 @@ body.inspect-fullscreen-mode #page-inspect .inspector-photo-block.inspect-immers
   </div>
   <div id="inspectResults" class="inspect-results hidden">
     <div class="inspector-photo-block"><p class="muted hidden" id="inspectStatus"></p>
-      <div class="inspect-options" id="inspectOptions"><label class="inspect-grid-toggle"><input type="checkbox" id="inspectGrid"> <span data-i18n="inspectGridSingle">Grid · one asset per cell</span></label><div class="inspect-toolbar"><button type="button" id="inspectZoomOut" aria-label="Zoom out">−</button><button type="button" id="inspectZoomFit" data-i18n="fit">Fit</button><button type="button" id="inspectZoomIn" aria-label="Zoom in">+</button><span class="inspect-zoom-label" id="inspectZoomLabel">100%</span></div><button type="button" class="primary small" id="inspectFullscreenBtn" data-i18n="fullscreen">Fullscreen</button><button type="button" id="inspectCurrent" class="hidden"></button></div>
+      <div class="inspect-options" id="inspectOptions"><label class="inspect-grid-toggle"><input type="checkbox" id="inspectGrid"> <span data-i18n="inspectGridSingle">Grid · one asset per cell</span></label><div class="inspect-toolbar"><button type="button" id="inspectZoomOut" aria-label="Zoom out">−</button><button type="button" id="inspectZoomFit" data-i18n="fit">Fit</button><button type="button" id="inspectZoomIn" aria-label="Zoom in">+</button><span class="inspect-zoom-label" id="inspectZoomLabel">100%</span></div><button type="button" id="inspectCurrent" class="hidden"></button></div>
       <div class="preview inspect-photo inspect-viewport" id="inspectViewport"><div id="inspectStage" class="inspect-stage"><canvas id="inspectCanvas" class="inspect-canvas" width="1280" height="960" aria-label="Project image; click a cell to inspect"></canvas><div id="inspectHighlight" class="hidden" aria-hidden="true"></div><div id="inspectTooltip" class="inspect-tooltip hidden" role="status" aria-live="polite"></div></div></div><p id="inspectSelectedInfo" role="status" aria-live="polite"></p><p class="inspect-viewport-note" data-i18n="inspectZoomHint">Mouse wheel / pinch to zoom · right-drag or swipe to move</p></div>
     <div class="inspector-report-block"><h3 data-i18n="inspectReport">📦 Used Block List &amp; Quantities</h3><div id="cellInfo" class="inspect-selection hidden" aria-live="polite"></div><div class="items" id="inspectItems"></div></div>
   </div>
@@ -670,33 +637,9 @@ function makeModel(cols=WIDTH,rows=HEIGHT,outW=OUTPUT_WIDTH){
 }
 function cloneCell(cell){return (cell || []).map(item => ({...item}));}
 function indexOfCell(model,x,y){return x>=0&&y>=0&&x<model.cols&&y<model.rows;}
-const assetNameKey=value=>String(value||'').split(/[\/?#]/).pop().replace(/\.webp$/i,'').toLowerCase().replace(/[\s_-]+/g,'');
-const stockByName=new Map();
-for(const asset of allAssets){
-  const name=assetNameKey(asset.file);
-  for(const key of [`${asset.category}:${name}`,`any:${name}`]){
-    if(!stockByName.has(key))stockByName.set(key,asset);
-    else stockByName.set(key,null);
-  }
-}
 function matchAsset(data){
-  if(!data)return null;
-  const direct=byId.get(data.id)||bySrc.get(data.src)||bySrc.get(encodeURI(data.src||''));
-  if(direct)return direct;
-  // Saved JSON may contain an outdated preview rather than the stock texture.
-  const id=String(data.id||''),src=String(data.src||'');
-  // A saved JSON can embed an old image preview while retaining the real
-  // Pixel Worlds block name. Use the stock texture when the identity is clear.
-  const folder=(id.match(/^builtin:(blocks|backgrounds|props|worlds):/i)||src.match(/(?:^|\/)(Blocks|Backgrounds|Props|Orbs)\//i)||[])[1];
-  const category=({blocks:'blocks',backgrounds:'backgrounds',props:'props',orbs:'worlds',worlds:'worlds'})[String(folder||data.category||'').toLowerCase()];
-  for(const name of [data.blockName,data.name,data.file,id.split(':').pop(),src]){
-    if(!name)continue;
-    const key=assetNameKey(name);
-    const found=stockByName.get(`${category||'any'}:${key}`);
-    const explicitGameName=!!data.blockName || id.startsWith('builtin:') || !!category;
-    if(found && (explicitGameName || (!id.startsWith('import:') && !/^(data:|blob:)/i.test(src))))return found;
-  }
-  return null;
+  if (!data) return null;
+  return byId.get(data.id) || bySrc.get(data.src) || bySrc.get(encodeURI(data.src || '')) || null;
 }
 function normalizeAsset(data){
   const found = matchAsset(data);
@@ -730,67 +673,12 @@ function cellRect(canvas,model,x,y){
   const y0=Math.round(y*canvas.height/model.rows),y1=Math.round((y+1)*canvas.height/model.rows);
   return {x:x0,y:y0,w:x1-x0,h:y1-y0};
 }
-// Grid-off: remove repeated bevel lighting from low-detail textures.
-// The inner drawing and patterned assets stay sharp; nothing is blurred or cropped.
-const cleanTextureCache=new WeakMap();
-function cleanTexture(img,src=''){
-  if(cleanTextureCache.has(img))return cleanTextureCache.get(img);
-  const w=img.naturalWidth,h=img.naturalHeight;
-  if(w<16||h<16||w>128||h>128){cleanTextureCache.set(img,img);return img;}
-  try{
-    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(img,0,0,w,h);
-    const pixels=ctx.getImageData(0,0,w,h),data=pixels.data;
-    let minAlpha=255;
-    for(let i=3;i<data.length;i+=4)minAlpha=Math.min(minAlpha,data[i]);
-    // Fully transparent details and sprite cutouts must not be altered.
-    if(minAlpha<32){cleanTextureCache.set(img,img);return img;}
-    const channels=minAlpha===255?3:4;
-    const columns=new Float64Array(w*channels),rows=new Float64Array(h*channels),totals=new Float64Array(channels);
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-      const index=(y*w+x)*4;
-      for(let c=0;c<channels;c++){
-        const value=data[index+c];
-        columns[x*channels+c]+=value;rows[y*channels+c]+=value;totals[c]+=value;
-      }
-    }
-    for(let i=0;i<columns.length;i++)columns[i]/=h;
-    for(let i=0;i<rows.length;i++)rows[i]/=w;
-    for(let i=0;i<channels;i++)totals[i]/=w*h;
-    let detail=0;
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-      const index=(y*w+x)*4;
-      for(let c=0;c<3;c++){
-        const value=data[index+c]-columns[x*channels+c]-rows[y*channels+c]+totals[c];
-        detail+=value*value;
-      }
-    }
-    // Intricate tiles (metal plates, bricks, ornaments) retain all source pixels.
-    if(Math.sqrt(detail/(w*h*3))>9){cleanTextureCache.set(img,img);return img;}
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-      const index=(y*w+x)*4;
-      for(let c=0;c<channels;c++){
-        const value=data[index+c]-columns[x*channels+c]-rows[y*channels+c]+2*totals[c];
-        data[index+c]=Math.round(clamp(value,0,255));
-      }
-    }
-    ctx.putImageData(pixels,0,0);
-    cleanTextureCache.set(img,canvas);
-    return canvas;
-  }catch(error){cleanTextureCache.set(img,img);return img;}
-}
-function drawOriginalTexture(ctx,img,r,borderless=false,assetSrc=''){
-  if(!img||!img.naturalWidth||!img.naturalHeight)return;
-  const texture=borderless?cleanTexture(img,assetSrc):img;
-  ctx.drawImage(texture,0,0,img.naturalWidth,img.naturalHeight,r.x,r.y,r.w,r.h);
-}
-function drawCell(ctx,canvas,model,cell,x,y,alpha=1,borderless=false){
+function drawCell(ctx,canvas,model,cell,x,y,alpha=1){
   const rect=cellRect(canvas,model,x,y);
   ctx.globalAlpha=alpha;
   for(const item of [...cell].sort((a,b)=>(CATEGORY_LAYER[a.category]??1)-(CATEGORY_LAYER[b.category]??1))){
     const img=readyImage(item.src);
-    if(img)drawOriginalTexture(ctx,img,rect,borderless,item.src);
+    if(img)ctx.drawImage(img,rect.x,rect.y,rect.w,rect.h);
   }
   ctx.globalAlpha=1;
 }
@@ -814,7 +702,7 @@ function renderWorld(canvas,model,grid=false,cloneOverlay=false){
   }else{
     ctx.fillStyle='#111a2e';ctx.fillRect(0,0,canvas.width,canvas.height);
   }
-  for(let y=0;y<model.rows;y++)for(let x=0;x<model.cols;x++)if(model.map[y]?.[x]?.length)drawCell(ctx,canvas,model,model.map[y][x],x,y,1,!grid);
+  for(let y=0;y<model.rows;y++)for(let x=0;x<model.cols;x++)if(model.map[y]?.[x]?.length)drawCell(ctx,canvas,model,model.map[y][x],x,y);
   if(grid)drawGrid(ctx,canvas,model);
   if(cloneOverlay){
     const s=state.cloneSelection;
@@ -827,7 +715,7 @@ function renderWorld(canvas,model,grid=false,cloneOverlay=false){
       ctx.fillStyle='rgba(0,195,220,.13)';
       const first=cellRect(canvas,model,d.x,d.y),last=cellRect(canvas,model,Math.min(model.cols-1,d.x+s.w-1),Math.min(model.rows-1,d.y+s.h-1));
       ctx.fillRect(first.x,first.y,last.x+last.w-first.x,last.y+last.h-first.y);
-      for(let yy=0;yy<s.h;yy++)for(let xx=0;xx<s.w;xx++)if(indexOfCell(model,d.x+xx,d.y+yy))drawCell(ctx,canvas,model,s.cells[yy][xx],d.x+xx,d.y+yy,.7,!grid);
+      for(let yy=0;yy<s.h;yy++)for(let xx=0;xx<s.w;xx++)if(indexOfCell(model,d.x+xx,d.y+yy))drawCell(ctx,canvas,model,s.cells[yy][xx],d.x+xx,d.y+yy,.7);
       ctx.strokeStyle='#02dcf2';ctx.lineWidth=3;ctx.setLineDash([]);
       ctx.strokeRect(first.x+2,first.y+2,last.x+last.w-first.x-4,last.y+last.h-first.y-4);
     }
@@ -841,43 +729,43 @@ function pickInspectorCellAsset(cell){
   const nonBg = cell.filter(item=>item && item.category!=='backgrounds');
   return (nonBg.length?nonBg[nonBg.length-1]:cell[cell.length-1])||null;
 }
-// Preserve the complete original game texture in every cell. No blur or cropping.
 function renderLegacyInspector(canvas,model,gridMode=false){
   if(!model)return;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.imageSmoothingEnabled=false;
+  const c=canvas.getContext('2d');
+  c.clearRect(0,0,canvas.width,canvas.height);
+  c.imageSmoothingEnabled=false;
   const worldImage=model.world?.src?readyImage(model.world.src):null;
-  if(worldImage){
-    drawOriginalTexture(ctx,worldImage,{x:0,y:0,w:canvas.width,h:canvas.height});
+  if(!gridMode && worldImage){
+    c.drawImage(worldImage,0,0,canvas.width,canvas.height);
   }else{
-    ctx.fillStyle='#111827';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+    c.fillStyle=gridMode?'#121a2b':'#111827';
+    c.fillRect(0,0,canvas.width,canvas.height);
   }
   for(let y=0;y<model.rows;y++)for(let x=0;x<model.cols;x++){
-    const cell=model.map[y][x];
-    if(!cell?.length)continue;
+    const r=cellRect(canvas,model,x,y);
     if(gridMode){
-      const asset=pickInspectorCellAsset(cell);
-      if(!asset)continue;
-      const img=readyImage(asset.src);
-      if(img)drawOriginalTexture(ctx,img,cellRect(canvas,model,x,y));
+      const top=pickInspectorCellAsset(model.map[y][x]);
+      if(top){
+        const img=readyImage(top.src);
+        if(img)c.drawImage(img,r.x,r.y,r.w,r.h);
+      }
     }else{
-      drawCell(ctx,canvas,model,cell,x,y,1,true);
+      for(const item of model.map[y][x]){
+        const img=readyImage(item.src);
+        if(img)c.drawImage(img,r.x,r.y,r.w,r.h);
+      }
     }
   }
   if(gridMode){
-    ctx.save();
-    ctx.fillStyle='rgba(255,255,255,.34)';
-    const cellW=canvas.width/model.cols,cellH=canvas.height/model.rows;
-    const lineWidth=Math.max(1,Math.round(Math.min(cellW,cellH)/8));
-    for(let x=1;x<model.cols;x++)ctx.fillRect(Math.round(x*cellW)-Math.floor(lineWidth/2),0,lineWidth,canvas.height);
-    for(let y=1;y<model.rows;y++)ctx.fillRect(0,Math.round(y*cellH)-Math.floor(lineWidth/2),canvas.width,lineWidth);
-    ctx.restore();
+    c.save();
+    c.fillStyle='rgba(255,255,255,.34)';
+    for(let x=1;x<model.cols;x++)c.fillRect(x*16-1,0,2,canvas.height);
+    for(let y=1;y<model.rows;y++)c.fillRect(0,y*16-1,canvas.width,2);
+    c.restore();
   }
-}
 
-function sizeCanvas(canvas,model,previewWidth=Math.min(2560,Math.max(1280,model.cols*32))){
+}
+function sizeCanvas(canvas,model,previewWidth=1280){
   canvas.width=previewWidth;
   canvas.height=Math.max(1,Math.round(previewWidth*model.outputHeight/model.outputWidth));
 }
@@ -933,12 +821,6 @@ function drawUsedAssets(){
 function setMode(mode){
   if(mode!=='edit'&&document.body.classList.contains('editor-immersive')){
     document.body.classList.remove('editor-immersive');syncEditorFullscreen();
-  }
-  if(mode!=='inspect'&&document.body.classList.contains('inspect-immersive')){
-    document.body.classList.remove('inspect-immersive');
-    document.body.classList.remove('inspect-fullscreen-mode');
-    const host=document.querySelector('#page-inspect .inspector-photo-block');
-    if(host)host.classList.remove('inspect-immersive');
   }
   state.mode=mode;
   for(const p of ['pixel','convert','edit','inspect'])$(`page-${p}`).classList.toggle('selected',p===mode);
@@ -1169,18 +1051,9 @@ function loadProjectObject(data){
     if(!entry.name&&entry.blockName)entry.name=entry.blockName;
     if(!entry.src&&entry.id&&byId.has(entry.id))entry.src=byId.get(entry.id).src;
     if(!entry.src)continue;
-    // Prefer the catalog's original src for stock assets. The saved JSON's
-    // src may be an outdated thumbnail, a cropped image or a stale data URL.
     const saved=normalizeAsset(entry);
-    const cell=model.map[y][x];
-    // Import the way Photo Designer paints: with Stack Blocks disabled,
-    // the most recent item in each category replaces older items.
-    if(!model.stack){
-      for(let i=cell.length-1;i>=0;i--){
-        if(cell[i].category===saved.category)cell.splice(i,1);
-      }
-    }
-    cell.push(saved);
+    if(typeof entry.src==='string' && entry.src)saved.src=entry.src;
+    model.map[y][x].push(saved);
   }
   return model;
 }
@@ -1284,44 +1157,6 @@ $('inspectPasteBtn').addEventListener('click',()=>{
 $('inspectCurrent').onclick=()=>{if(!state.model)return alert(tr('inspectFirst'));state.inspectModel=state.model;resetInspectorSelection();updateInspector()};
 
 const inspectViewport=$('inspectViewport'),inspectStage=$('inspectStage'),inspectCanvas=$('inspectCanvas');
-const inspectFullscreenHost=document.querySelector('#page-inspect .inspector-photo-block');
-function isInspectFullscreenActive(){
-  const full=document.fullscreenElement;
-  return (full===inspectFullscreenHost||inspectFullscreenHost?.contains(full))||document.body.classList.contains('inspect-immersive');
-}
-function syncInspectFullscreenLabel(){
-  $('inspectFullscreenBtn').textContent=tr(isInspectFullscreenActive()?'exitFullscreen':'fullscreen');
-}
-function syncInspectFullscreen(){
-  const active=isInspectFullscreenActive();
-  document.body.classList.toggle('inspect-fullscreen-mode',active);
-  if(!active&&inspectFullscreenHost)inspectFullscreenHost.classList.remove('inspect-immersive');
-  $('inspectFullscreenBtn').textContent=tr(active?'exitFullscreen':'fullscreen');
-  requestAnimationFrame(()=>fitInspector(true));
-}
-$('inspectFullscreenBtn').onclick=async()=>{
-  if(document.body.classList.contains('inspect-immersive')){
-    document.body.classList.remove('inspect-immersive');
-    document.body.classList.remove('inspect-fullscreen-mode');
-    inspectFullscreenHost?.classList.remove('inspect-immersive');
-    syncInspectFullscreen();
-    return;
-  }
-  const full=document.fullscreenElement;
-  if(full===inspectFullscreenHost||(inspectFullscreenHost&&inspectFullscreenHost.contains(full))){
-    await document.exitFullscreen();
-    return;
-  }
-  try{
-    if(typeof inspectFullscreenHost?.requestFullscreen!=='function')throw new Error('Fullscreen API unavailable');
-    await inspectFullscreenHost.requestFullscreen();
-  }catch(err){
-    document.body.classList.add('inspect-immersive');
-    inspectFullscreenHost?.classList.add('inspect-immersive');
-    syncInspectFullscreen();
-  }
-};
-document.addEventListener('fullscreenchange',syncInspectFullscreen);
 const inspectHighlight=$('inspectHighlight');
 state.inspectPanX=0;state.inspectPanY=0;state.inspectFitScale=1;
 function updateInspectZoomLabel(){ $('inspectZoomLabel').textContent=`${Math.round(state.inspectZoom*100)}%`; }
@@ -1373,8 +1208,8 @@ function inspectorZoomFocus(){
   const cell=state.inspectSelection;
   if(!cell)return [null,null];
   const rect=inspectViewport.getBoundingClientRect();
-  const x=rect.left+state.inspectPanX+(cell.x+.5)*(inspectCanvas.width/state.inspectModel.cols)*state.inspectViewScale;
-  const y=rect.top+state.inspectPanY+(cell.y+.5)*(inspectCanvas.height/state.inspectModel.rows)*state.inspectViewScale;
+  const x=rect.left+state.inspectPanX+(cell.x+.5)*16*state.inspectViewScale;
+  const y=rect.top+state.inspectPanY+(cell.y+.5)*16*state.inspectViewScale;
   if(x<rect.left||x>rect.right||y<rect.top||y>rect.bottom)return [null,null];
   return [x,y];
 }
@@ -1386,18 +1221,17 @@ function inspectCellAt(clientX,clientY){
   const rect=inspectViewport.getBoundingClientRect();
   const px=(clientX-rect.left-state.inspectPanX)/state.inspectViewScale;
   const py=(clientY-rect.top-state.inspectPanY)/state.inspectViewScale;
-  const x=Math.floor(px/(inspectCanvas.width/model.cols)),y=Math.floor(py/(inspectCanvas.height/model.rows));
+  const x=Math.floor(px/16),y=Math.floor(py/16);
   return indexOfCell(model,x,y)?{x,y}:null;
 }
 function positionInspectorSelection(){
   const cell=state.inspectSelection;
   if(!cell||!state.inspectModel){inspectHighlight.classList.add('hidden');return;}
-  const sizeX=(inspectCanvas.width/state.inspectModel.cols)*state.inspectViewScale;
-  const sizeY=(inspectCanvas.height/state.inspectModel.rows)*state.inspectViewScale;
-  inspectHighlight.style.left=`${state.inspectPanX+cell.x*sizeX}px`;
-  inspectHighlight.style.top=`${state.inspectPanY+cell.y*sizeY}px`;
-  inspectHighlight.style.width=`${sizeX}px`;
-  inspectHighlight.style.height=`${sizeY}px`;
+  const size=16*state.inspectViewScale;
+  inspectHighlight.style.left=`${state.inspectPanX+cell.x*size}px`;
+  inspectHighlight.style.top=`${state.inspectPanY+cell.y*size}px`;
+  inspectHighlight.style.width=`${size}px`;
+  inspectHighlight.style.height=`${size}px`;
   inspectHighlight.classList.remove('hidden');
   positionInspectorTooltip();
 }
@@ -1407,12 +1241,11 @@ function positionInspectorTooltip(){
   const scale=clamp(.95+.13*Math.log2(state.inspectZoom),.82,1.35);
   tip.style.transform=`scale(${scale})`;
   const boxW=tip.offsetWidth*scale,boxH=tip.offsetHeight*scale;
-  const sizeX=(inspectCanvas.width/state.inspectModel.cols)*state.inspectViewScale;
-  const sizeY=(inspectCanvas.height/state.inspectModel.rows)*state.inspectViewScale;
-  const cellX=state.inspectPanX+(cell.x+.5)*sizeX;
-  const cellY=state.inspectPanY+cell.y*sizeY;
+  const size=16*state.inspectViewScale;
+  const cellX=state.inspectPanX+(cell.x+.5)*size;
+  const cellY=state.inspectPanY+cell.y*size;
   const w=inspectViewport.clientWidth,h=inspectViewport.clientHeight;
-  const nearX=cellX+Math.max(10,sizeX*.5),nearY=cellY+sizeY+8;
+  const nearX=cellX+Math.max(10,size*.5),nearY=cellY+size+8;
   const left=clamp(nearX,8,Math.max(8,w-boxW-8));
   const top=clamp(nearY+boxH>h-8?cellY-boxH-9:nearY,8,Math.max(8,h-boxH-8));
   tip.style.left=`${left}px`;tip.style.top=`${top}px`;
@@ -1502,9 +1335,8 @@ function updateInspector(){
   if(!state.inspectModel)return;
   $('inspectResults').classList.remove('hidden');
   $('inspectOptions').classList.remove('hidden');
-  syncInspectFullscreenLabel();
-  inspectCanvas.width=state.inspectModel.cols*32;
-  inspectCanvas.height=state.inspectModel.rows*32;
+  inspectCanvas.width=state.inspectModel.cols*16;
+  inspectCanvas.height=state.inspectModel.rows*16;
   $('inspectStatus').textContent=tr('inspectorSize',{cols:state.inspectModel.cols,rows:state.inspectModel.rows,count:usedCounts(state.inspectModel).length});
   if(!state.inspectSelection)$('inspectSelectedInfo').textContent=tr('inspectNoSelection');
   $('cellInfo').textContent='';
@@ -1642,13 +1474,11 @@ $('zoomIn').onclick=()=>zoomTo(state.zoom*1.25);
 $('zoomFit').onclick=()=>{state.zoom=1;fitEditor(true)};
 $('editorGrid').onchange=e=>{state.gridEdit=e.target.checked;queueRender()};
 function syncEditorFullscreenLabel(){
-  const full=document.fullscreenElement;
-  const active=(full===$('editorShell')||$('editorShell').contains(full))||document.body.classList.contains('editor-immersive');
+  const active=!!document.fullscreenElement||document.body.classList.contains('editor-immersive');
   $('fullscreenBtn').textContent=tr(active?'exitFullscreen':'fullscreen');
 }
 function syncEditorFullscreen(){
-  const full=document.fullscreenElement;
-  const active=(full===$('editorShell')||$('editorShell').contains(full))||document.body.classList.contains('editor-immersive');
+  const active=!!document.fullscreenElement||document.body.classList.contains('editor-immersive');
   document.body.classList.toggle('fullscreen-mode',active);
   $('fullscreenBtn').textContent=tr(active?'exitFullscreen':'fullscreen');
   requestAnimationFrame(()=>fitEditor(true));
@@ -1668,17 +1498,9 @@ document.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&document.body.classList.contains('editor-immersive')){
     document.body.classList.remove('editor-immersive');syncEditorFullscreen();
   }
-  if(event.key==='Escape'&&document.body.classList.contains('inspect-immersive')){
-    document.body.classList.remove('inspect-immersive');
-    document.body.classList.remove('inspect-fullscreen-mode');
-    const host=document.querySelector('#page-inspect .inspector-photo-block');
-    if(host)host.classList.remove('inspect-immersive');
-    syncInspectFullscreen();
-  }
 });
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{
   if(state.mode==='edit')requestAnimationFrame(()=>fitEditor(false));
-  if(state.mode==='inspect')requestAnimationFrame(()=>fitInspector(false));
 });
 viewport.addEventListener('contextmenu',e=>e.preventDefault());
 viewport.addEventListener('wheel',e=>{
@@ -1715,7 +1537,7 @@ function markEditorCellDirty(x,y){
         ctx.drawImage(bg,sx+r.x/canvas.width*croppedW,sy+r.y/canvas.height*croppedH,
           r.w/canvas.width*croppedW,r.h/canvas.height*croppedH,r.x,r.y,r.w,r.h);
       }else{ctx.fillStyle='#111a2e';ctx.fillRect(r.x,r.y,r.w,r.h);}
-      if(m.map[y][x].length)drawCell(ctx,canvas,m,m.map[y][x],x,y,1,!state.gridEdit);
+      if(m.map[y][x].length)drawCell(ctx,canvas,m,m.map[y][x],x,y);
       if(state.gridEdit){
         ctx.fillStyle='rgba(255,255,255,.27)';
         for(const xx of [x,x+1])if(xx>0&&xx<m.cols){
@@ -1974,7 +1796,7 @@ $('libraryStatus').textContent=tr('catalogLoading');
   }
 })();
 state.model=makeModel();sizeCanvas($('editorCanvas'),state.model);sizeCanvas($('convertCanvas'),state.model);
-updateInspectZoomLabel();syncInspectFullscreenLabel();sizeCanvas($('inspectCanvas'),state.model);syncSizeInputs();renderCatalog();drawUsedAssets();
+updateInspectZoomLabel();sizeCanvas($('inspectCanvas'),state.model);syncSizeInputs();renderCatalog();drawUsedAssets();
 applyLanguage();
 requestAnimationFrame(queueRender);
 </script>
